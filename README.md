@@ -12,7 +12,7 @@ SearchMaterialsAndTextures
 =========
 
 
-![Search Materials And Textures](https://github.com/jb-alvarado/SearchMaterialAndTexture/blob/master/Screenshot.png "SearchMaterialsAndTextures")
+![Search Materials And Textures](https://raw.github.com/jb-alvarado/SearchMaterialAndTexture/master/Screenshot.png "SearchMaterialsAndTextures")
 
 Download
 --------
