@@ -1,7 +1,7 @@
 /*
 ----------------------------------------------------------------------------------------------------------------------
 ::
-::    Description: This MaxScript is for for collecting materials and texture, searching by name, 
+::    Description: This MaxScript is for collecting materials and texture, searching by name, 
 ::					modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
