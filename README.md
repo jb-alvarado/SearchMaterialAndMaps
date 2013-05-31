@@ -1,6 +1,8 @@
 ---
 title: SearchMaterialsAndTextures
+
 description: Search Materials and Texutres
+
 author: Jonathan Baecker (jb_alvarado)
 
 created:  2013 May 27
