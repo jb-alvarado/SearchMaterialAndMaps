@@ -6,7 +6,8 @@ description: Search Materials and Textures
 author: Jonathan Baecker (jb_alvarado)
 
 created:  2013 May 27
-modified: 2013 May 31
+
+modified: 2013 June 02
 
 ---
 
@@ -21,7 +22,7 @@ Download
 
 ### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndTexture/archive/master.zip)
 
-Current release is **v0.3**
+Current release is **v0.5**
 
 
 This MaxScript is for collecting materials and texture, searching by name, 

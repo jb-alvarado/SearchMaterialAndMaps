@@ -29,9 +29,10 @@
 :: History ----------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 0.3 from 2013-05-27. Last bigger modification was on 2013-06-01
+:: This is version 0.5 from 2013-05-27. Last bigger modification was on 2013-06-01
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
+:: 2013-06-02:Add support for multiple texture selections (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -235,8 +236,9 @@ fn matlists mtl = (
 rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 height:640 (
 	
 		local ProgramName = "Search Material and Textures"
-		local theSelection = undefined
-	
+		local selTexArray = #()
+		local selTexNums = #()
+
 	groupBox grpProgress "Progress:" pos:[10,10] width:380 height:60
 		label lblProgress "" pos:[20,30] width:200 height:16
 		progressBar prgProgress "" pos:[20,49] width:360 height:12 color:[0,200,0]
@@ -245,7 +247,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		button btnSeMatAndTex "Collect Materials and Textures" pos:[20,95] width:160 height:20
 		editText edtMat "" pos:[16,120] width:300 height:20 readOnly:true
 		button btnChangeTex "Browse" pos:[320,120] width:60 height:20
-		listBox lbxTextures "" pos:[20,145] width:360 height:30
+		multiListBox lbxTextures "" pos:[20,145] width:360 height:30
 	
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,555] width:380 height:75
 		editText edtBox "" pos:[16,573] width:304 height:20 
@@ -314,7 +316,6 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			
 			if (lbxTextures.selection == 1) do (
 				edtMat.text = list[1]
-				theSelection = colMats[1][1]
 				)
 		)
 	
@@ -330,60 +331,74 @@ on btnSeMatAndTex pressed do (
 -------------------------------------
 --selected list entry
 -------------------------------------	
-on lbxTextures selected listSel do (
-	if (superclassof colMats[listSel][1] == material) then ( 
-		edtMat.text = colMats[listSel][1].name
-		) else if (classof colMats[listSel][1] == BitmapTexture ) do (
-			
-		edtMat.text = getFilenamePath colMats[listSel][1].filename + getFilenameFile colMats[listSel][1].filename + getFilenameType colMats[listSel][1].filename
+on lbxTextures selectionEnd do (
+	selTexArray = #()
+	selTexNums = #()
+	for k in lbxTextures.selection do (
+		join selTexArray #(colMats[k][1])
+		join selTexNums #(k)
 		)
 		
-		theSelection = colMats[listSel][1]
+		if (selTexArray.count == 1 AND classof selTexArray[1] == BitmapTexture) then (
+			edtMat.text = getFilenamePath  selTexArray[1].filename + getFilenameFile  selTexArray[1].filename + getFilenameType  selTexArray[1].filename
+			) else if (selTexArray.count == 1 AND superclassof selTexArray[1] == Material) then (
+				edtMat.text = selTexArray[1].name
+				) else if (selTexArray.count > 1) then (
+					for t = 1 to selTexArray.count do (
+						if (classof selTexArray[t] == BitmapTexture) then (
+							edtMat.text = getFilenamePath  selTexArray[1].filename
+							) else if (superclassof selTexArray[t] == Material ) then (
+								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName 
+								deleteItem selTexArray t
+								deleteItem selTexNums t
+								lbxTextures.selection=selTexNums
+								exit
+								)
+						)
+					)
 	)
-
 -------------------------------------
 --Browse Texture
 -------------------------------------	
-	on btnChangeTex pressed do ( 
-		if (colMats.count == 0) do (
-			MessageBox "Please collect materials and textures first!" title:ProgramName
-			return false
-			)
+on btnChangeTex pressed do ( 
+	if (selTexArray.count == 0) do (
+		MessageBox "Please collect materials and textures first!" title:ProgramName
+		return false
+		)
 		
-		local broList = #()
-			
-		for i = 1 to colMats.count do (
-			if (superclassof colMats[i][1] == material) then ( 
-				join broList #(colMats[i][1])
-				) else if (classof colMats[i][1] == BitmapTexture ) do (
-					join broList #(colMats[i][1])
-					)
-			)
-		
-		--get texture name an path
-		for j = 1 to broList.count do (
-			if (lbxTextures.selection == j AND classof broList[j] == BitmapTexture) then (
-				filepath = getFilenamePath broList[j].filename + getFilenameFile broList[j].filename + getFilenameType broList[j].filename
+	if (selTexArray.count == 1 AND superclassof selTexArray[1] == Material) then (
+		MessageBox "Please select a texture map..." title:ProgramName
+		return false
+		) else if (selTexArray.count == 1 AND classof selTexArray[1] == BitmapTexture) then (
+			filepath = getFilenamePath selTexArray[1].filename + getFilenameFile selTexArray[1].filename + getFilenameType selTexArray[1].filename
 
-				inputFile = getOpenFileName \
-				caption:"Select Bitmap Image File" \
-				filename:filepath \
-				types:"All Files (*.*)|*.*|AVI File (*.avi)|*.avi|Mpeg File (*.mpg,*.mpeg)|*.mpg;*.mpeg|BMP Image File (*.bmp)|*.bmp|Kodak Cineon (*.cin)|*.cin|Combustion* by Discreet (*.cws)|*.cws\
-				|OpenEXR Image File (*.exr)|*.exr|GIF Image File (*.gif)|*.gif|Radiance Image File (HDRI) (*.hdr*.pic)|*.hdr;*.pic|ILF Image File (*.ifl)|*.ifl\
-				|JPEG Image File (*.jpg,*.jpe,*.jpeg)|*.jpg;*.jpe;*.jpeg|PNG Image File (*.png)|*.png|Adobe PSD Reader (*.psd)|*.psd|MOV QuickTime File (*.mov)|*.mov\
-				|SGI Image File (*.rgb,*.rgba,*.sgi,*.int,*.inta,*.bw)|*.rgb;*.rgba;*.sgi;*.int;*.inta,*.bw|RLA Image File (*.rla)|*.rla|RPF (*.rpf)|*.rpf|Targa Image File (*.tga)|*.tga|Tif Image File (*.tif,*.tif)|*.tif;*.tiff\
-				|YUV Image File (*.yuv)|*.yuv|DDS Image File (*.dds)|*.dds|" \
-				historyCategory:"Textures"
+			inputFile = getOpenFileName \
+			caption:"Select Bitmap Image File" \
+			filename:filepath \
+			types:"All Files (*.*)|*.*|AVI File (*.avi)|*.avi|Mpeg File (*.mpg,*.mpeg)|*.mpg;*.mpeg|BMP Image File (*.bmp)|*.bmp|Kodak Cineon (*.cin)|*.cin|Combustion* by Discreet (*.cws)|*.cws\
+			|OpenEXR Image File (*.exr)|*.exr|GIF Image File (*.gif)|*.gif|Radiance Image File (HDRI) (*.hdr*.pic)|*.hdr;*.pic|ILF Image File (*.ifl)|*.ifl\
+			|JPEG Image File (*.jpg,*.jpe,*.jpeg)|*.jpg;*.jpe;*.jpeg|PNG Image File (*.png)|*.png|Adobe PSD Reader (*.psd)|*.psd|MOV QuickTime File (*.mov)|*.mov\
+			|SGI Image File (*.rgb,*.rgba,*.sgi,*.int,*.inta,*.bw)|*.rgb;*.rgba;*.sgi;*.int;*.inta,*.bw|RLA Image File (*.rla)|*.rla|RPF (*.rpf)|*.rpf|Targa Image File (*.tga)|*.tga|Tif Image File (*.tif,*.tif)|*.tif;*.tiff\
+			|YUV Image File (*.yuv)|*.yuv|DDS Image File (*.dds)|*.dds|" \
+			historyCategory:"Textures"
 			
-				) else if (lbxTextures.selection == j AND superclassof broList[j] == material) then (
-					MessageBox "Please select a texture map..." title:ProgramName
-					exit
+			if (inputFile != undefined) do (
+				selTexArray[1].filename = inputFile
+				edtMat.text = inputFile
+				)	
+			) else (
+				filepath = getFilenamePath selTexArray[1].filename
+				
+				folder = getSavePath caption:"Select Path:" initialDir:(filepath)
+				if folder != undefined do (
+					inDir = getFilenamePath (folder + "/")
+					for y = 1 to selTexArray.count do (
+						selTexArray[y].filename = (inDir + getFilenameFile selTexArray[y].filename + getFilenameType selTexArray[y].filename)
+						edtMat.text = inDir
+						)
 					)
-				if (inputFile != undefined) do (
-					broList[j].filename = inputFile
-					lbxTextures.selection = j
-					)	
-			)
+				)
+		
 		doMaterialList sceneMaterials
 		)
 	
@@ -391,6 +406,7 @@ on lbxTextures selected listSel do (
 --search material by name
 -------------------------------------
 on btnSeMat pressed do (
+	selTexArray = #()
 	doMaterialList sceneMaterials
 	
 	if (edtBox.text != "") then (
@@ -411,7 +427,7 @@ on btnSeMat pressed do (
 			if (colMats[f][1].name == edtBox.text) then (
 				NameMatch = colMats[f][1]
 				NameIndex = f
-				) else if (classof colMats[f][1] ==BitmapTexture AND (getFilenameFile colMats[f][1].filename + getFilenameType colMats[f][1].filename) == edtBox.text) then (
+				) else if (classof colMats[f][1] == BitmapTexture AND (getFilenameFile colMats[f][1].filename + getFilenameType colMats[f][1].filename) == edtBox.text) then (
 					NameMatch = colMats[f][1]
 					NameIndex = f
 				
@@ -421,21 +437,21 @@ on btnSeMat pressed do (
 			
 		--count textures with the same name	
 		if (NumCount.count > 1) do (
-			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use! Select last...") title:ProgramName
+			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use...") title:ProgramName
+			lbxTextures.selection=NumCount
+			
+			for numSe in NumCount do (
+				--print numSe
+				join selTexArray #(colMats[numSe][1])
+				)
+				edtMat.text = getFilenamePath selTexArray[1].filename
+				return false
 			)	
 		
 		--jump to the searched material or texture	
 		if (NameMatch != undefined) then (
-				if (findItem matLS NameMatch.name > 0) then (
-					lbxTextures.selection = NameIndex
-					
-					activeMeditSlot = (findItem matLS NameMatch.name) 
-					MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (findItem matLS NameMatch.name) as string) title:ProgramName
-					) else (
-					lbxTextures.selection = NameIndex
-					theSelection = NameMatch
-					)
-				
+				lbxTextures.selection = NameIndex
+				join selTexArray #(colMats[NameIndex][1])
 			) else (
 				MessageBox ("Material or Textures \"" + edtBox.text + "\" not found...") title:ProgramName
 				)		
@@ -448,24 +464,25 @@ on btnSeMat pressed do (
 --copy texture to material editor
 -------------------------------------		
 on btnMoveMat pressed do (
-	if (theSelection != undefined) then (
+	if (selTexArray.count == 0) then (
+		MessageBox "Please collect, or search, and select something first!" title:ProgramName
+		) else if (selTexArray.count == 1) then (
+			matLS = #()
+			local i
 			
-		matLS = #()
-		local i
-		
-		for i = 1 to meditMaterials.count do (					
-			join matLS #(meditMaterials [i].name)	
-			)
-		
-		if (findItem matLS theSelection.name > 0) then (
-			activeMeditSlot = (findItem matLS theSelection.name) 
-			MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (findItem matLS theSelection.name) as string) title:ProgramName
-			) else (
-				setMeditMaterial spnSlotNum.value theSelection
+			for i = 1 to meditMaterials.count do (					
+				join matLS #(meditMaterials [i].name)	
 				)
-		) else (
-			MessageBox "Please collect, or search, and select something first!" title:ProgramName
-			)
+			
+			if (findItem matLS selTexArray[1].name > 0) then (
+				activeMeditSlot = (findItem matLS selTexArray[1].name) 
+				MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (findItem matLS selTexArray[1].name) as string) title:ProgramName
+				) else (
+					setMeditMaterial spnSlotNum.value selTexArray[1]
+					)
+			) else (
+				MessageBox "Please select only one item!" title:ProgramName
+				)
 	)	
 	
 ) --rollout end
