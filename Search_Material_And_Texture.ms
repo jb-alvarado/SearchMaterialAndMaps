@@ -246,8 +246,8 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 	
 	groupBox grpSeMyTex "Collection From All Materials And Textures:" pos:[10,75] width:380 height:475
 		button btnSeMatAndTex "Collect Materials and Textures" pos:[20,95] width:160 height:20
-		editText edtMat "" pos:[16,120] width:300 height:20 readOnly:true
-		button btnChangeTex "Browse" pos:[320,120] width:60 height:20
+		editText edtMat "" pos:[16,122] width:300 readOnly:true
+		button btnChangeTex "Browse" pos:[320,122] width:60 height:18
 		multiListBox lbxTextures "" pos:[20,145] width:360 height:30
 	
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,555] width:380 height:75
@@ -266,7 +266,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		grpSeMyTex.width=newSize[1]-20
 		grpSeMyTex.height=newSize[2]-165
 			edtMat.width=newSize[1]-105
-			btnChangeTex.pos=[newSize[1]-80,120] 
+			btnChangeTex.pos=[newSize[1]-80,122] 
 			lbxTextures.width=newSize[1]-40
 			lbxTextures.height=newSize[2]-244
 		
@@ -407,7 +407,7 @@ on btnChangeTex pressed do (
 --search material by name
 -------------------------------------
 
---text field 
+--text field (funtion not really need at the moment)
 -------------------------------------		
 on edtBox changed text do (
 	edtBoxText = edtBox.text 	
@@ -416,7 +416,6 @@ on edtBox changed text do (
 on edtBox entered text do (
 	edtBox.text = edtBoxText
 	setfocus SearchMaterialAndTextures
-	print edtBox.text
 	)
 	
 --search button
