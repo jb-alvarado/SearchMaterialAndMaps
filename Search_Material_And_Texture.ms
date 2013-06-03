@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------------------------------------------------
 ::
 ::    Description: This MaxScript is for collecting materials and texture, searching by name, 
-::					modify the texture path and copy the selection in the material editor.
+::		   modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
 :: LICENSE -------------------------------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		multiListBox lbxTextures "" pos:[20,145] width:360 height:30
 	
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,555] width:380 height:75
-		editText edtBox "" pos:[16,573] width:304 height:20 
+		editText edtBox text:"" pos:[16,573] width:304
 		button btnSeMat "Search" pos:[330,573] width:50 height:20
 		spinner spnSlotNum "Material Editor, Slot Number: " pos:[265,603] width:55 height:16 range:[1,24,1] type:#integer
 		button btnMoveMat "Copy To" pos:[330,601] width:50 height:20	
@@ -404,6 +404,23 @@ on btnChangeTex pressed do (
 	
 -------------------------------------
 --search material by name
+-------------------------------------
+
+--text field 
+-------------------------------------
+local edtBoxText = ""
+		
+on edtBox changed text do (
+	edtBoxText = edtBox.text 	
+	)
+	
+on edtBox entered text do (
+	edtBox.text = edtBoxText
+	setfocus SearchMaterialAndTextures
+	print edtBox.text
+	)
+	
+--search button
 -------------------------------------
 on btnSeMat pressed do (
 	selTexArray = #()
