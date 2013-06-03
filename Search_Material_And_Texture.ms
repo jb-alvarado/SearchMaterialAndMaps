@@ -238,6 +238,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		local ProgramName = "Search Material and Textures"
 		local selTexArray = #()
 		local selTexNums = #()
+		local edtBoxText = ""
 
 	groupBox grpProgress "Progress:" pos:[10,10] width:380 height:60
 		label lblProgress "" pos:[20,30] width:200 height:16
@@ -407,9 +408,7 @@ on btnChangeTex pressed do (
 -------------------------------------
 
 --text field 
--------------------------------------
-local edtBoxText = ""
-		
+-------------------------------------		
 on edtBox changed text do (
 	edtBoxText = edtBox.text 	
 	)
