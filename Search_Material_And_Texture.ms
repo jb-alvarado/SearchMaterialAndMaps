@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------------------------------------------------
 ::
 ::    Description: This MaxScript is for collecting materials and texture, searching by name, 
-::		   modify the texture path and copy the selection in the material editor.
+::		    modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
 :: LICENSE ----------------------------------------------------------------------------------------------------
@@ -484,7 +484,7 @@ on btnSeMat pressed do (
 			)
 			
 		--count textures, or materials with the same name	
-		if (NumCount.count > 1 AND classOf listBG[1] == BitmapTexture) then (
+		if (NumCount.count > 1 AND classOf listBG[NameIndex] == BitmapTexture) then (
 			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use...") title:ProgramName
 			mlbxMatsAndTexs.selection=NumCount
 			
@@ -494,7 +494,7 @@ on btnSeMat pressed do (
 				edtMat.text = getFilenamePath selTexArray[1].filename
 				return false
 				
-			) else if (NumCount.count > 1 AND superClassOf listBG[1] == Material) then (
+			) else if (NumCount.count > 1 AND superClassOf listBG[NameIndex] == Material) then (
 				MessageBox ("Material is \"" + NumCount.count as string + "\" times in use! Selecting last...") title:ProgramName
 				)
 		
