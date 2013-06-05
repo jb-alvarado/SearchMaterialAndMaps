@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------------------------------------------------
 ::
 ::    Description: This MaxScript is for collecting materials and texture, searching by name, 
-::		   modify the texture path and copy the selection in the material editor.
+::	   	   modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
 :: LICENSE ----------------------------------------------------------------------------------------------------
@@ -569,7 +569,7 @@ on btnSeMat pressed do (
 				MessageBox ("Material or Textures \"" + edtBox.text + "\" not found...") title:ProgramName
 				)
 		) else (
-			MessageBox "Please type a material name in the text field!" title:ProgramName
+			MessageBox "Please type a material or texture name in the text field!" title:ProgramName
 			)
 	) --btnSeMat end
 
