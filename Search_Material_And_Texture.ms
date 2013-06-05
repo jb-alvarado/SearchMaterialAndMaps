@@ -29,11 +29,12 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 0.75 from 2013-06-04. Last bigger modification was on 2013-06-01
+:: This is version 0.85 from 2013-06-05. Last bigger modification was on 2013-06-01
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
 :: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
 :: 2013-06-04: Add list filter options, and select object by material (Jonathan Baecker)
+:: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +45,6 @@
 --	Author:   Jonathan Baecker (jb_alvardo), www.pixelcrusher.de | blog.pixelcrusher.de
 --
 ----------------------------------------------------------------------------------------------------------------------
-
 */
 
 (
@@ -54,15 +54,14 @@
 -------------------------------------------------------------------
 --Search texture by name function
 -------------------------------------------------------------------
-fn GetBitmapTextures mtl =
-	(
+fn GetBitmapTextures mtl = (
 		local texFiles= #()
 		
 		join texFiles (getClassInstances bitmapTexture target:mtl asTrackViewPick:off)
 	
 		for texFile in texFiles do (
 			join colMats  #(colMatsS = #(texFile))
-			join colMatsS #("        " + getFilenameFile texFile.filename + getFilenameType texFile.filename)
+			join colMatsS #("        " + filenameFromPath texFile.filename)
 			join colMatsS #("tex")
 			)
 	)
@@ -71,27 +70,27 @@ fn GetBitmapTextures mtl =
 -------------------------------------------------------------------
 --Search material by name function
 -------------------------------------------------------------------
-fn matlists mtl = (	
-		case classof mtl of ( 
+fn matlists mtl = (
+		case classof mtl of (
 			--------------------------------------------------
 			--Blend
 			--------------------------------------------------
 			Blend:
-			(	
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
 				join colMatsS #("mat")
-				
+
 				local blendMat = #()
-				
+
 				if (mtl.map1 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.map1))
 					join colMatsS #("    " + mtl.map1.name)
 					join colMatsS #("sub")
-						
+
 					GetBitmapTextures mtl.map1
 					)
-				if (mtl.map2 != undefined) do (	
+				if (mtl.map2 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.map2))
 					join colMatsS #("    " + mtl.map2.name)
 					join colMatsS #("sub")
@@ -103,71 +102,71 @@ fn matlists mtl = (
 			--Shellac
 			--------------------------------------------------
 			Shellac:
-			(	
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
-				join colMatsS #("mat")	
-				
-				if (mtl.shellacMtl1 != undefined) do (	
+				join colMatsS #("mat")
+
+				if (mtl.shellacMtl1 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.shellacMtl1))
 					join colMatsS #("    " + mtl.shellacMtl1.name)
 					join colMatsS #("sub")
-						
+
 					GetBitmapTextures mtl.shellacMtl1
 					)
-				if (mtl.shellacMtl2 != undefined) do (	
+				if (mtl.shellacMtl2 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.shellacMtl2))
 					join colMatsS #("    " + mtl.shellacMtl2.name)
-					join colMatsS #("sub")	
-						
-					GetBitmapTextures mtl.shellacMtl2	
+					join colMatsS #("sub")
+
+					GetBitmapTextures mtl.shellacMtl2
 					)
 			)
 			--------------------------------------------------
 			--TopBottom 
 			--------------------------------------------------
 			TopBottom:
-			(	
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
 				join colMatsS #("mat")
-				
+
 				if (mtl.topMaterial != undefined) do (
 					join colMats  #(colMatsS = #(mtl.topMaterial))
 					join colMatsS #("    " + mtl.topMaterial.name)
 					join colMatsS #("sub")	
-						
-					GetBitmapTextures mtl.topMaterial	
+
+					GetBitmapTextures mtl.topMaterial
 					)
-				if (mtl.bottomMaterial != undefined) do (	
+				if (mtl.bottomMaterial != undefined) do (
 					join colMats  #(colMatsS = #(mtl.bottomMaterial))
 					join colMatsS #("    " + mtl.bottomMaterial.name)
-					join colMatsS #("sub")	
-						
-					GetBitmapTextures mtl.bottomMaterial	
+					join colMatsS #("sub")
+
+					GetBitmapTextures mtl.bottomMaterial
 					)
 			)
 			--------------------------------------------------
 			--DoubleSided 
 			--------------------------------------------------
 			doubleSided:
-			(	
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
-				join colMatsS #("mat")	
-				
+				join colMatsS #("mat")
+
 				if (mtl.material1 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.material1))
 					join colMatsS #("    " + mtl.material1.name)
-					join colMatsS #("sub")	
+					join colMatsS #("sub")
 
 					GetBitmapTextures mtl.material1
 					)
-				if (mtl.material2 != undefined) do (	
+				if (mtl.material2 != undefined) do (
 					join colMats  #(colMatsS = #(mtl.material2))
 					join colMatsS #("    " + mtl.material2.name)
 					join colMatsS #("sub")
-						
+
 					GetBitmapTextures mtl.material2	
 					)
 			)
@@ -175,65 +174,65 @@ fn matlists mtl = (
 			--Shell_Material 
 			--------------------------------------------------
 			Shell_Material:
-			(	
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
 				join colMatsS #("mat")
-				
+
 				if (mtl.originalMaterial != undefined) do (
 					join colMats  #(colMatsS = #(mtl.originalMaterial))
 					join colMatsS #("    " + mtl.originalMaterial.name)
-					join colMatsS #("sub")	
-					
-					GetBitmapTextures mtl.originalMaterial	
+					join colMatsS #("sub")
+
+					GetBitmapTextures mtl.originalMaterial
 					)
 				if (mtl.bakedMaterial != undefined) do (
 					join colMats  #(colMatsS = #(mtl.bakedMaterial))
 					join colMatsS #("    " + mtl.bakedMaterial.name)
-					join colMatsS #("sub")	
-					
+					join colMatsS #("sub")
+
 					GetBitmapTextures mtl.bakedMaterial
 					)
 			)
 			--------------------------------------------------
 			-- Multimaterials
 			--------------------------------------------------
-			MultiMaterial: 
-			( 
+			MultiMaterial:
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
 				join colMatsS #("mat")
-					
+
 				local m
-				for m = 1 to mtl.numsubs do 
+				for m = 1 to mtl.numsubs do
 				(
 					if (mtl[m] != undefined) do (
 						join colMats  #(colMatsS = #(mtl[m]))
 						join colMatsS #("    " + mtl[m].name)
-						join colMatsS #("sub")	
-						
-						GetBitmapTextures mtl[m]	
+						join colMatsS #("sub")
+
+						GetBitmapTextures mtl[m]
 						)
 				)
 		 	)
 			--------------------------------------------------
 			--CompositeMaterial
 			--------------------------------------------------
-			CompositeMaterial: 
-			( 
+			CompositeMaterial:
+			(
 				join colMats  #(colMatsS = #(mtl))
 				join colMatsS #(mtl.name)
-				join colMatsS #("mat")	
-					
+				join colMatsS #("mat")
+
 				local c
-				for c = 1 to mtl.materialList.count do 
-				(	
+				for c = 1 to mtl.materialList.count do
+				(
 					if (mtl.materialList[c] != undefined) do (
 						join colMats  #(colMatsS = #(mtl.materialList[c]))
 						join colMatsS #("    " + mtl.materialList[c].name)
-						join colMatsS #("sub")	
-							
-						GetBitmapTextures mtl.materialList[c]		
+						join colMatsS #("sub")
+
+						GetBitmapTextures mtl.materialList[c]
 						)
 				)
 		 	)
@@ -242,20 +241,20 @@ fn matlists mtl = (
 			--------------------------------------------------
 			default:
 			(
-				if (superclassof mtl == material) do ( 
+				if (superclassof mtl == material) do (
 					join colMats  #(colMatsS = #(mtl))
 					join colMatsS #(mtl.name)
-					join colMatsS #("mat")	
-						
+					join colMatsS #("mat")
+
 					GetBitmapTextures mtl
 					)
 			)
 			
-		) --case end	
+		) --case end
 		
 	) --fn matlists end
 
-rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 height:660 (
+rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 height:680 (
 	
 		local ProgramName = "Search Material and Textures"
 		local listVis = #()
@@ -267,8 +266,8 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 	groupBox grpProgress "Progress:" pos:[10,10] width:380 height:60
 		label lblProgress "" pos:[20,30] width:200 height:16
 		progressBar prgProgress "" pos:[20,49] width:360 height:12 color:[0,200,0]
-	
-	groupBox grpSeMyTex "Collection From All Materials And Textures:" pos:[10,75] width:380 height:495
+
+	groupBox grpSeMyTex "Collection From All Materials And Textures:" pos:[10,75] width:380 height:515
 		button btnSeMatAndTex "Collect Materials and Textures" pos:[20,95] width:160 height:20
 		button btnSelObj "Select Objects By Material" pos:[240,95] width:140 height:20
 		editText edtMat "" pos:[16,122] width:300 readOnly:true
@@ -277,38 +276,40 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		checkBox chkMat "Show Materials" pos:[20,547] checked:true
 		checkBox chkSub "Show SubMaterials" pos:[145,547] checked:true
 		checkBox chkTex "Show Textures" pos:[290,547] checked:true
-	
-	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,575] width:380 height:75
-		editText edtBox text:"" pos:[16,593] width:304
-		button btnSeMat "Search" pos:[330,593] width:50 height:20
-		spinner spnSlotNum "Material Editor, Slot Number: " pos:[265,623] width:55 height:16 range:[1,24,1] type:#integer
-		button btnMoveMat "Copy To" pos:[330,621] width:50 height:20	
-	
+		checkBox chkmissing "Show Missing Textures" pos:[20,567] checked:false
+
+	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,595] width:380 height:75
+		editText edtBox text:"" pos:[16,613] width:304
+		button btnSeMat "Search" pos:[330,613] width:50 height:20
+		spinner spnSlotNum "Material Editor, Slot Number: " pos:[265,643] width:55 height:16 range:[1,24,1] type:#integer
+		button btnMoveMat "Copy To" pos:[330,641] width:50 height:20
+
 	-----------------------------------------------
 	--resize statment
 	-----------------------------------------------
 	on SearchMaterialAndTextures resized newSize do (
-		
+
 		grpProgress.width=newSize[1]-20
-		
+
 		grpSeMyTex.width=newSize[1]-20
 		grpSeMyTex.height=newSize[2]-165
 			btnSelObj.pos=[newSize[1]-160,95]
 			edtMat.width=newSize[1]-105
 			btnChangeTex.pos=[newSize[1]-80,122] 
 			mlbxMatsAndTexs.width=newSize[1]-40
-			mlbxMatsAndTexs.height=newSize[2]-264
-			chkMat.pos=[20,newSize[2]-113]
-			chkSub.pos=[newSize[1]/2-55,newSize[2]-113]
-			chkTex.pos=[newSize[1]-110,newSize[2]-113]
-		
+			mlbxMatsAndTexs.height=newSize[2]-284
+			chkMat.pos=[20,newSize[2]-133]
+			chkSub.pos=[newSize[1]/2-55,newSize[2]-133]
+			chkTex.pos=[newSize[1]-110,newSize[2]-133]
+			chkmissing.pos=[20,newSize[2]-113]
+
 		grpSeByName.width=newSize[1]-20
-		grpSeByName.pos=[10, newSize[2]-85] 
+		grpSeByName.pos=[10, newSize[2]-85]
 			edtBox.width=newSize[1]-100
-			edtBox.pos=[20,newSize[2]-67] 
-			btnSeMat.pos=[newSize[1]-70,newSize[2]-67] 
-			spnSlotNum.pos=[newSize[1]-91,newSize[2]-37] 
-			btnMoveMat.pos=[newSize[1]-70,newSize[2]-39] 
+			edtBox.pos=[20,newSize[2]-67]
+			btnSeMat.pos=[newSize[1]-70,newSize[2]-67]
+			spnSlotNum.pos=[newSize[1]-91,newSize[2]-37]
+			btnMoveMat.pos=[newSize[1]-70,newSize[2]-39]
 		)
 
 -----------------------------------------------
@@ -319,25 +320,25 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			colMats = #()
 			colMatsS = #()
 			listVis = #()
-			listBG = #()	
+			listBG = #()
 			listBGType = #()
-			
+
 			if (sceneMaterials.count == 0) do
 				(
-					MessageBox "There are no materials in your current scene!" title:ProgramName 
-				)				
-								
-			for i = 1 to sceneMaterials.count do 
+					MessageBox "There are no materials in your current scene!" title:ProgramName
+				)
+
+			for i = 1 to sceneMaterials.count do
 				(
 					lblProgress.caption = ("Material: " + sceneMaterials[i].name)
 					matScene = sceneMaterials[i].name
 					matlists sceneMaterials[i]
 					prgProgress.value = 100.000 / sceneMaterials.count * i
 				)
-				
-			lblProgress.caption = ("Done...")	
+
+			lblProgress.caption = ("Done...")
 			prgProgress.value = 100
-			
+
 	--get names from materials and textures
 		for m = 1 to colMats.count do (
 			if (chkMat.checked == true AND colMats[m][3] == "mat") then (
@@ -352,12 +353,18 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 						join listVis #(colMats[m][2])
 						join listBG  #(listBGType = #(colMats[m][1]))
 						join listBGType #(colMats[m][3])
-						)
+						) else if (chkmissing.checked == true AND colMats[m][3] == "tex") then (
+							if not (doesFileExist colMats[m][1].filename) do (
+								join listVis #(colMats[m][2])
+								join listBG  #(listBGType = #(colMats[m][1]))
+								join listBGType #(colMats[m][3])
+								)
+							)
 			)
 			--fill the listBox mlbxMatsAndTexs box 
 			mlbxMatsAndTexs.items = listVis
 		)
-	
+
 -------------------------------------
 	--Buttons
 -------------------------------------
@@ -366,29 +373,29 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 on btnSeMatAndTex pressed do (
 	doMaterialList sceneMaterials
 	)	
-	
+
 -------------------------------------
 --select objects by material
--------------------------------------	
+-------------------------------------
 on btnSelObj pressed do (
 	if (selectionArray.count == 1) then (
 		if (selectionArray[1][2] == "mat") then (
 			select (for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj)
 			) else if (selectionArray[1][2] == "tex") then (
-				messagebox "Please select a material! Your corrent selection is a texture..." title:ProgramName 
+				messagebox "Please select a material! Your corrent selection is a texture..." title:ProgramName
 				) else if (selectionArray[1][2] == "sub") then (
-					messagebox "Please select a material! Your corrent selection is a subMaterial..." title:ProgramName 
+					messagebox "Please select a material! Your corrent selection is a subMaterial..." title:ProgramName
 					)
 		) else if (selectionArray.count == 0) then (
-			messagebox "No material selected..." title:ProgramName 
+			messagebox "No material selected..." title:ProgramName
 			) else (
-				messagebox "Please select a material!" title:ProgramName 	
+				messagebox "Please select a material!" title:ProgramName
 				)
-	)	
-	
+	)
+
 -------------------------------------
 --selected list entry
--------------------------------------	
+-------------------------------------
 on mlbxMatsAndTexs selectionEnd do (
 	selectionArray = #()
 	selectionArraySub = #()
@@ -400,15 +407,15 @@ on mlbxMatsAndTexs selectionEnd do (
 		)
 
 		if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
-			edtMat.text = getFilenamePath selectionArray[1][1].filename + getFilenameFile selectionArray[1][1].filename + getFilenameType selectionArray[1][1].filename
+			edtMat.text = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
 			) else if (selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material) then (
 				edtMat.text = selectionArray[1][1].name
 				) else if (selectionArray.count > 1) then (
 					for t = 1 to selectionArray.count do (
 						if (classof selectionArray[t][1] == BitmapTexture) then (
-							edtMat.text = getFilenamePath  selectionArray[1][1].filename
+							edtMat.text = getFilenamePath selectionArray[1][1].filename
 							) else if (superclassof selectionArray[t][1] == Material ) then (
-								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName 
+								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 								deleteItem selectionArray t
 								deleteItem selectionNums t
 								mlbxMatsAndTexs.selection = selectionNums
@@ -419,8 +426,8 @@ on mlbxMatsAndTexs selectionEnd do (
 	)
 -------------------------------------
 --Browse Texture
--------------------------------------	
-on btnChangeTex pressed do ( 
+-------------------------------------
+on btnChangeTex pressed do (
 	if (selectionArray.count == 0) do (
 		MessageBox "Please collect materials and textures first!" title:ProgramName
 		return false
@@ -430,7 +437,7 @@ on btnChangeTex pressed do (
 		MessageBox "Please select a texture map..." title:ProgramName
 		return false
 		) else if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
-			filepath = getFilenamePath selectionArray[1][1].filename + getFilenameFile selectionArray[1][1].filename + getFilenameType selectionArray[1][1].filename
+			filepath = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
 
 			inputFile = getOpenFileName \
 			caption:"Select Bitmap Image File" \
@@ -441,27 +448,48 @@ on btnChangeTex pressed do (
 			|SGI Image File (*.rgb,*.rgba,*.sgi,*.int,*.inta,*.bw)|*.rgb;*.rgba;*.sgi;*.int;*.inta,*.bw|RLA Image File (*.rla)|*.rla|RPF (*.rpf)|*.rpf|Targa Image File (*.tga)|*.tga|Tif Image File (*.tif,*.tif)|*.tif;*.tiff\
 			|YUV Image File (*.yuv)|*.yuv|DDS Image File (*.dds)|*.dds|" \
 			historyCategory:"Textures"
-			
+
 			if (inputFile != undefined) do (
 				selectionArray[1][1].filename = inputFile
 				edtMat.text = inputFile
-				)	
+				)
 			) else (
 				filepath = getFilenamePath selectionArray[1][1].filename
-				
+
 				folder = getSavePath caption:"Select Path:" initialDir:(filepath)
 				if folder != undefined do (
 					inDir = getFilenamePath (folder + "/")
 					for y = 1 to selectionArray.count do (
-						selectionArray[y][1].filename = (inDir + getFilenameFile selectionArray[y][1].filename + getFilenameType selectionArray[y][1].filename)
+						selectionArray[y][1].filename = (inDir + filenameFromPath selectionArray[y][1].filename)
 						edtMat.text = inDir
 						)
 					)
 				)
-		
+
 		doMaterialList sceneMaterials
 		)
-	
+
+-------------------------------------
+--checkboxen - filter functions
+-------------------------------------
+on chkMat changed theState do (
+	doMaterialList sceneMaterials
+	)
+
+on chkSub changed theState do (
+	doMaterialList sceneMaterials
+	)	
+
+on chkTex changed theState do (
+	chkmissing.checked = false
+	doMaterialList sceneMaterials
+	)
+
+on chkmissing changed theState do (
+	chkTex.checked = false
+	doMaterialList sceneMaterials
+	)
+
 -------------------------------------
 --search material by name
 -------------------------------------
@@ -469,97 +497,96 @@ on btnChangeTex pressed do (
 --text field (funtion not really need at the moment)
 -------------------------------------		
 on edtBox changed text do (
-	edtBoxText = edtBox.text 	
+	edtBoxText = edtBox.text 
 	)
-	
+
 on edtBox entered text do (
 	edtBox.text = edtBoxText
 	setfocus SearchMaterialAndTextures
 	)
-	
+
 --search button
 -------------------------------------
-on btnSeMat pressed do (	
+on btnSeMat pressed do (
 	selectionArray = #()
 	selectionArraySub = #()
-	doMaterialList sceneMaterials
-	
+
 	if (edtBox.text != "") then (
+		doMaterialList sceneMaterials
 		matLS = #()
 		local i
-		
-		for i = 1 to meditMaterials.count do 
-		(					
-			join matLS #(meditMaterials [i].name)	
+
+		for i = 1 to meditMaterials.count do (
+			join matLS #(meditMaterials [i].name)
 		)
-		
+
 		--check if material or texture name exist
 		local NameMatch = undefined
 		local NameIndex = 1
 		local NumCount = #()
-		
+
 		for f = 1 to listBG.count do (
 			if (listBG[f][1].name == edtBox.text) then (
 				NameMatch = listBG[f][1]
 				NameIndex = f
 				join NumCount #(f)
-				) else if (classof listBG[f][1] == BitmapTexture AND (getFilenameFile listBG[f][1].filename + getFilenameType listBG[f][1].filename) == edtBox.text) then (
+				) else if (classof listBG[f][1] == BitmapTexture AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
 					NameMatch = listBG[f][1]
 					NameIndex = f
-				
+
 					join NumCount #(f)
 					)
 			)
-			
-		--count textures, or materials with the same name	
+
+		--count textures, or materials with the same name
 		if (NumCount.count > 1 AND classOf listBG[NameIndex][1] == BitmapTexture) then (
 			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use...") title:ProgramName
 			mlbxMatsAndTexs.selection=NumCount
-			
+
 			for numSe in NumCount do (
 				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
 				join selectionArraySub #(listBG[numSe][2])
 				)
 				edtMat.text = getFilenamePath selectionArray[1][1].filename
 				return false
-				
+
 			) else if (NumCount.count > 1 AND superClassOf listBG[NameIndex][1] == Material) then (
 				MessageBox ("Material is \"" + NumCount.count as string + "\" times in use! Selecting last...") title:ProgramName
 				)
-		
-		--jump to the searched material or texture	
+
+		--jump to the searched material or texture
 		if (NameMatch != undefined) then (
 				mlbxMatsAndTexs.selection = NameIndex
 				join selectionArray  #(selectionArraySub = #(listBG[NameIndex][1]))
 				join selectionArraySub #(listBG[NameIndex][2])
-					
+
 				if (classof listBG[NameIndex][1] == BitmapTexture) then (
-					edtMat.text = getFilenamePath listBG[NameIndex][1].filename + getFilenameFile listBG[NameIndex][1].filename + getFilenameType listBG[NameIndex][1].filename
+					edtMat.text = getFilenamePath listBG[NameIndex][1].filename + filenameFromPath listBG[NameIndex][1].filename
 					) else if (superClassOf listBG[NameIndex][1] == Material) then (
 						edtMat.text = listBG[NameIndex][1].name
 						)
 			) else (
 				MessageBox ("Material or Textures \"" + edtBox.text + "\" not found...") title:ProgramName
-				)		
-		) else ( 
+				)
+		) else (
 			MessageBox "Please type a material name in the text field!" title:ProgramName
 			)
 	) --btnSeMat end
-	
+
 -------------------------------------
 --copy texture to material editor
--------------------------------------		
+-------------------------------------
 on btnMoveMat pressed do (
 	if (selectionArray.count == 0) then (
 		MessageBox "Please collect, or search, and select something first!" title:ProgramName
 		) else if (selectionArray.count == 1) then (
 			matLS = #()
 			local i
-			
-			for i = 1 to meditMaterials.count do (					
-				join matLS #(meditMaterials [i].name)	
+
+			for i = 1 to meditMaterials.count do (
+				join matLS #(meditMaterials [i].name)
 				)
-			
+
 			if (findItem matLS selectionArray[1][1].name > 0) then (
 				activeMeditSlot = (findItem matLS selectionArray[1][1].name) 
 				MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (findItem matLS selectionArray[1][1].name) as string) title:ProgramName
@@ -570,7 +597,7 @@ on btnMoveMat pressed do (
 				MessageBox "Please select only one item!" title:ProgramName
 				)
 	) --btnMoveMat end
-	
+
 ) --rollout end
 
 
