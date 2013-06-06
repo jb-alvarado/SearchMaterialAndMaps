@@ -35,6 +35,7 @@
 :: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
 :: 2013-06-04: Add list filter options, and select object by material (Jonathan Baecker)
 :: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
+:: 2013-06-06: optimize the search command and add a sort function for the texture list (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -316,51 +317,76 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 --Progress, fill material and texture array
 -----------------------------------------------
 	fn doMaterialList sceneMaterials = (
-			--reset material and texture array
-			colMats = #()
-			colMatsS = #()
-			listVis = #()
-			listBG = #()
-			listBGType = #()
+		--reset material and texture array
+		colMats = #()
+		colMatsS = #()
+		listVis = #()
+		listBG = #()
+		listBGType = #()
 
-			if (sceneMaterials.count == 0) do
-				(
-					MessageBox "There are no materials in your current scene!" title:ProgramName
-				)
+		if (sceneMaterials.count == 0) do (
+			MessageBox "There are no materials in your current scene!" title:ProgramName
+			)
 
-			for i = 1 to sceneMaterials.count do
-				(
-					lblProgress.caption = ("Material: " + sceneMaterials[i].name)
-					matScene = sceneMaterials[i].name
-					matlists sceneMaterials[i]
-					prgProgress.value = 100.000 / sceneMaterials.count * i
-				)
+		for i = 1 to sceneMaterials.count do (
+			lblProgress.caption = ("Material: " + sceneMaterials[i].name)
+			matScene = sceneMaterials[i].name
+			matlists sceneMaterials[i]
+			prgProgress.value = 100.000 / sceneMaterials.count * i
+			)
+		lblProgress.caption = ("Done...")
+		prgProgress.value = 100
 
-			lblProgress.caption = ("Done...")
-			prgProgress.value = 100
-
-	--get names from materials and textures
+		--get names from materials and textures
 		for m = 1 to colMats.count do (
 			if (chkMat.checked == true AND colMats[m][3] == "mat") then (
 				join listVis #(colMats[m][2])
 				join listBG  #(listBGType = #(colMats[m][1]))
+				join listBGType #(colMats[m][2])
 				join listBGType #(colMats[m][3])
 				) else if (chkSub.checked == true AND colMats[m][3] == "sub") then (
 					join listVis #(colMats[m][2])
 					join listBG  #(listBGType = #(colMats[m][1]))
+					join listBGType #(colMats[m][2])
 					join listBGType #(colMats[m][3])
 					) else if (chkTex.checked == true AND colMats[m][3] == "tex") then (
 						join listVis #(colMats[m][2])
 						join listBG  #(listBGType = #(colMats[m][1]))
+						join listBGType #(colMats[m][2])
 						join listBGType #(colMats[m][3])
 						) else if (chkmissing.checked == true AND colMats[m][3] == "tex") then (
 							if not (doesFileExist colMats[m][1].filename) do (
 								join listVis #(colMats[m][2])
 								join listBG  #(listBGType = #(colMats[m][1]))
+								join listBGType #(colMats[m][2])
 								join listBGType #(colMats[m][3])
 								)
 							)
 			)
+			
+			--sort array when only textures selected
+			if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == true AND chkmissing.checked == false) then (
+				fn sortByXMember listBG1 listBG2 x:1 = (
+					case of (
+						(listBG1[2] < listBG2[2]):-1
+						(listBG1[2] > listBG2[2]):1
+						default:0
+						)
+					)
+					qsort listBG sortByXMember x:2
+					sort listVis
+				) else if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == false AND chkmissing.checked == true) then (
+					fn sortByXMember listBG1 listBG2 x:1 = (
+						case of (
+							(listBG1[2] < listBG2[2]):-1
+							(listBG1[2] > listBG2[2]):1
+							default:0
+							)
+						)
+					qsort listBG sortByXMember x:2
+					sort listVis
+					)
+					
 			--fill the listBox mlbxMatsAndTexs box 
 			mlbxMatsAndTexs.items = listVis
 		)
@@ -513,12 +539,6 @@ on btnSeMat pressed do (
 
 	if (edtBox.text != "") then (
 		doMaterialList sceneMaterials
-		matLS = #()
-		local i
-
-		for i = 1 to meditMaterials.count do (
-			join matLS #(meditMaterials [i].name)
-		)
 
 		--check if material or texture name exist
 		local NameMatch = undefined
@@ -533,7 +553,6 @@ on btnSeMat pressed do (
 				) else if (classof listBG[f][1] == BitmapTexture AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
 					NameMatch = listBG[f][1]
 					NameIndex = f
-
 					join NumCount #(f)
 					)
 			)
@@ -547,9 +566,8 @@ on btnSeMat pressed do (
 				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
 				join selectionArraySub #(listBG[numSe][2])
 				)
-				edtMat.text = getFilenamePath selectionArray[1][1].filename
-				return false
-
+			edtMat.text = getFilenamePath selectionArray[1][1].filename
+			return false
 			) else if (NumCount.count > 1 AND superClassOf listBG[NameIndex][1] == Material) then (
 				MessageBox ("Material is \"" + NumCount.count as string + "\" times in use! Selecting last...") title:ProgramName
 				)
@@ -580,19 +598,19 @@ on btnMoveMat pressed do (
 	if (selectionArray.count == 0) then (
 		MessageBox "Please collect, or search, and select something first!" title:ProgramName
 		) else if (selectionArray.count == 1) then (
-			matLS = #()
+			local meditMatch = 0
 			local i
 
 			for i = 1 to meditMaterials.count do (
-				join matLS #(meditMaterials [i].name)
+				if (matchPattern (meditMaterials [i].name) pattern:selectionArray[1][1].name) do (
+					activeMeditSlot = i
+					MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (i as string)) title:ProgramName
+					meditMatch = 1
+					) 
 				)
-
-			if (findItem matLS selectionArray[1][1].name > 0) then (
-				activeMeditSlot = (findItem matLS selectionArray[1][1].name) 
-				MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (findItem matLS selectionArray[1][1].name) as string) title:ProgramName
-				) else (
-					setMeditMaterial spnSlotNum.value selectionArray[1][1]
-					)
+			if (meditMatch == 0) do (
+				setMeditMaterial spnSlotNum.value selectionArray[1][1]
+				)	
 			) else (
 				MessageBox "Please select only one item!" title:ProgramName
 				)
