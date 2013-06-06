@@ -428,17 +428,17 @@ on mlbxMatsAndTexs selectionEnd do (
 	selectionNums = #()
 	for k in mlbxMatsAndTexs.selection do (
 		join selectionArray  #(selectionArraySub = #(listBG[k][1]))
-		join selectionArraySub #(listBG[k][2])
+		join selectionArraySub #(listBG[k][3])
 		join selectionNums #(k)
 		)
 
-		if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
+		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
 			edtMat.text = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
 			) else if (selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material) then (
 				edtMat.text = selectionArray[1][1].name
 				) else if (selectionArray.count > 1) then (
 					for t = 1 to selectionArray.count do (
-						if (classof selectionArray[t][1] == BitmapTexture) then (
+						if (selectionArray[t][2] == "tex") then (
 							edtMat.text = getFilenamePath selectionArray[1][1].filename
 							) else if (superclassof selectionArray[t][1] == Material ) then (
 								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
@@ -462,7 +462,7 @@ on btnChangeTex pressed do (
 	if (selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material) then (
 		MessageBox "Please select a texture map..." title:ProgramName
 		return false
-		) else if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
+		) else if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
 			filepath = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
 
 			inputFile = getOpenFileName \
@@ -550,7 +550,7 @@ on btnSeMat pressed do (
 				NameMatch = listBG[f][1]
 				NameIndex = f
 				join NumCount #(f)
-				) else if (classof listBG[f][1] == BitmapTexture AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
+				) else if (listBG[f][3] == "tex" AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
 					NameMatch = listBG[f][1]
 					NameIndex = f
 					join NumCount #(f)
@@ -558,13 +558,13 @@ on btnSeMat pressed do (
 			)
 
 		--count textures, or materials with the same name
-		if (NumCount.count > 1 AND classOf listBG[NameIndex][1] == BitmapTexture) then (
+		if (NumCount.count > 1 AND listBG[NameIndex][3] == "tex") then (
 			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use...") title:ProgramName
 			mlbxMatsAndTexs.selection=NumCount
 
 			for numSe in NumCount do (
 				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
-				join selectionArraySub #(listBG[numSe][2])
+				join selectionArraySub #(listBG[numSe][3])
 				)
 			edtMat.text = getFilenamePath selectionArray[1][1].filename
 			return false
@@ -576,9 +576,9 @@ on btnSeMat pressed do (
 		if (NameMatch != undefined) then (
 				mlbxMatsAndTexs.selection = NameIndex
 				join selectionArray  #(selectionArraySub = #(listBG[NameIndex][1]))
-				join selectionArraySub #(listBG[NameIndex][2])
+				join selectionArraySub #(listBG[NameIndex][3])
 
-				if (classof listBG[NameIndex][1] == BitmapTexture) then (
+				if (listBG[NameIndex][3] == "tex") then (
 					edtMat.text = getFilenamePath listBG[NameIndex][1].filename + filenameFromPath listBG[NameIndex][1].filename
 					) else if (superClassOf listBG[NameIndex][1] == Material) then (
 						edtMat.text = listBG[NameIndex][1].name
