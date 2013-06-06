@@ -366,24 +366,24 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			
 			--sort array when only textures selected
 			if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == true AND chkmissing.checked == false) then (
-				fn sortByXMember listBG1 listBG2 x:1 = (
+				fn sortByXMember listBG1 listBG2 = (
 					case of (
 						(listBG1[2] < listBG2[2]):-1
 						(listBG1[2] > listBG2[2]):1
 						default:0
 						)
 					)
-					qsort listBG sortByXMember x:2
+					qsort listBG sortByXMember
 					sort listVis
 				) else if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == false AND chkmissing.checked == true) then (
-					fn sortByXMember listBG1 listBG2 x:1 = (
+					fn sortByXMember listBG1 listBG2 = (
 						case of (
 							(listBG1[2] < listBG2[2]):-1
 							(listBG1[2] > listBG2[2]):1
 							default:0
 							)
 						)
-					qsort listBG sortByXMember x:2
+					qsort listBG sortByXMember
 					sort listVis
 					)
 					
