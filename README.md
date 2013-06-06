@@ -7,11 +7,8 @@ author: Jonathan Baecker (jb_alvarado)
 
 created:  2013 May 27
 
-<<<<<<< HEAD
 modified: 2013 June 06
 =======
-modified: 2013 June 05
->>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 
 ---
 
