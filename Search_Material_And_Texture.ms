@@ -36,6 +36,10 @@
 :: 2013-06-04: Add list filter options, and select object by material (Jonathan Baecker)
 :: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+:: 2013-06-06: optimize the search command and add a sort function for the texture list (Jonathan Baecker)
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 :: 2013-06-06: optimize the search command and add a sort function for the texture list (Jonathan Baecker)
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -432,11 +436,19 @@ on mlbxMatsAndTexs selectionEnd do (
 	for k in mlbxMatsAndTexs.selection do (
 		join selectionArray  #(selectionArraySub = #(listBG[k][1]))
 <<<<<<< HEAD
+<<<<<<< HEAD
 		join selectionArraySub #(listBG[k][2])
 		join selectionNums #(k)
 		)
 
 		if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
+=======
+		join selectionArraySub #(listBG[k][3])
+		join selectionNums #(k)
+		)
+
+		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 		join selectionArraySub #(listBG[k][3])
 		join selectionNums #(k)
@@ -450,7 +462,11 @@ on mlbxMatsAndTexs selectionEnd do (
 				) else if (selectionArray.count > 1) then (
 					for t = 1 to selectionArray.count do (
 <<<<<<< HEAD
+<<<<<<< HEAD
 						if (classof selectionArray[t][1] == BitmapTexture) then (
+=======
+						if (selectionArray[t][2] == "tex") then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 						if (selectionArray[t][2] == "tex") then (
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -478,7 +494,11 @@ on btnChangeTex pressed do (
 		MessageBox "Please select a texture map..." title:ProgramName
 		return false
 <<<<<<< HEAD
+<<<<<<< HEAD
 		) else if (selectionArray.count == 1 AND classof selectionArray[1][1] == BitmapTexture) then (
+=======
+		) else if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 		) else if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -570,7 +590,11 @@ on btnSeMat pressed do (
 				NameIndex = f
 				join NumCount #(f)
 <<<<<<< HEAD
+<<<<<<< HEAD
 				) else if (classof listBG[f][1] == BitmapTexture AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
+=======
+				) else if (listBG[f][3] == "tex" AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 				) else if (listBG[f][3] == "tex" AND (filenameFromPath listBG[f][1].filename) == edtBox.text) then (
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -582,7 +606,11 @@ on btnSeMat pressed do (
 
 		--count textures, or materials with the same name
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (NumCount.count > 1 AND classOf listBG[NameIndex][1] == BitmapTexture) then (
+=======
+		if (NumCount.count > 1 AND listBG[NameIndex][3] == "tex") then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 		if (NumCount.count > 1 AND listBG[NameIndex][3] == "tex") then (
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -592,7 +620,11 @@ on btnSeMat pressed do (
 			for numSe in NumCount do (
 				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
 <<<<<<< HEAD
+<<<<<<< HEAD
 				join selectionArraySub #(listBG[numSe][2])
+=======
+				join selectionArraySub #(listBG[numSe][3])
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 				join selectionArraySub #(listBG[numSe][3])
 >>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
@@ -608,9 +640,15 @@ on btnSeMat pressed do (
 				mlbxMatsAndTexs.selection = NameIndex
 				join selectionArray  #(selectionArraySub = #(listBG[NameIndex][1]))
 <<<<<<< HEAD
+<<<<<<< HEAD
 				join selectionArraySub #(listBG[NameIndex][2])
 
 				if (classof listBG[NameIndex][1] == BitmapTexture) then (
+=======
+				join selectionArraySub #(listBG[NameIndex][3])
+
+				if (listBG[NameIndex][3] == "tex") then (
+>>>>>>> 04ffb78a424fc69e475c6f808466e3dce662cfe7
 =======
 				join selectionArraySub #(listBG[NameIndex][3])
 
