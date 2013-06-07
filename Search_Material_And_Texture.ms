@@ -29,13 +29,14 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 0.85 from 2013-06-05. Last bigger modification was on 2013-06-01
+:: This is version 0.91 from 2013-06-07. Last bigger modification was on 2013-06-01
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
 :: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
 :: 2013-06-04: Add list filter options, and select object by material (Jonathan Baecker)
 :: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
-:: 2013-06-06: optimize the search command and add a sort function for the texture list (Jonathan Baecker)
+:: 2013-06-06: Optimize the search command and add a sort function for the texture list (Jonathan Baecker)
+:: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -277,7 +278,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		checkBox chkMat "Show Materials" pos:[20,547] checked:true
 		checkBox chkSub "Show SubMaterials" pos:[145,547] checked:true
 		checkBox chkTex "Show Textures" pos:[290,547] checked:true
-		checkBox chkmissing "Show Missing Textures" pos:[20,567] checked:false
+		checkBox chkmissing "Missing Texture Paths" pos:[20,567] checked:false
 
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,595] width:380 height:75
 		editText edtBox text:"" pos:[16,613] width:304
@@ -318,6 +319,8 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 -----------------------------------------------
 	fn doMaterialList sceneMaterials = (
 		--reset material and texture array
+		tmpArray = #()
+		tmpSubArray = #()
 		colMats = #()
 		colMatsS = #()
 		listVis = #()
@@ -327,12 +330,25 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		if (sceneMaterials.count == 0) do (
 			MessageBox "There are no materials in your current scene!" title:ProgramName
 			)
-
-		for i = 1 to sceneMaterials.count do (
-			lblProgress.caption = ("Material: " + sceneMaterials[i].name)
-			matScene = sceneMaterials[i].name
-			matlists sceneMaterials[i]
-			prgProgress.value = 100.000 / sceneMaterials.count * i
+			
+		for h = 1 to sceneMaterials.count do (
+			join tmpArray  #(tmpSubArray = #(sceneMaterials[h]))
+			join tmpSubArray #(sceneMaterials[h].name)
+			)
+			
+		fn sortByXMember tmpArray1 tmpArray2 x:2 = (
+			case of (
+				(tmpArray1[x] < tmpArray2[x]):-1
+				(tmpArray1[x] > tmpArray2[x]):1
+				default:0
+				)
+			)
+		qsort tmpArray sortByXMember x:2
+			
+		for i = 1 to tmpArray.count do (
+			lblProgress.caption = ("Material: " + tmpArray[i][1].name)
+			matlists tmpArray[i][1]
+			prgProgress.value = 100.000 / tmpArray.count * i
 			)
 		lblProgress.caption = ("Done...")
 		prgProgress.value = 100
@@ -366,24 +382,24 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			
 			--sort array when only textures selected
 			if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == true AND chkmissing.checked == false) then (
-				fn sortByXMember listBG1 listBG2 = (
+				fn sortByXMember listBG1 listBG2 x:2 = (
 					case of (
-						(listBG1[2] < listBG2[2]):-1
-						(listBG1[2] > listBG2[2]):1
+						(listBG1[x] < listBG2[x]):-1
+						(listBG1[x] > listBG2[x]):1
 						default:0
 						)
 					)
-					qsort listBG sortByXMember
+					qsort listBG sortByXMember 
 					sort listVis
 				) else if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == false AND chkmissing.checked == true) then (
-					fn sortByXMember listBG1 listBG2 = (
+					fn sortByXMember listBG1 listBG2 x:2 = (
 						case of (
-							(listBG1[2] < listBG2[2]):-1
-							(listBG1[2] > listBG2[2]):1
+							(listBG1[x] < listBG2[x]):-1
+							(listBG1[x] > listBG2[x]):1
 							default:0
 							)
 						)
-					qsort listBG sortByXMember
+					qsort listBG sortByXMember x:2
 					sort listVis
 					)
 					
