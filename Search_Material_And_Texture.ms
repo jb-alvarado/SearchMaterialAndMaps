@@ -37,7 +37,7 @@
 :: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
 :: 2013-06-06: Optimize the search command and add a sort function for the texture list (Jonathan Baecker)
 :: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
-:: 2013-06-09: Add show texture slot checkbox (Jonathan Baecker)
+:: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -291,6 +291,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		checkBox chkTex "Show Textures" pos:[290,547] checked:true
 		checkBox chkmissing "Missing Texture Path" pos:[20,567] checked:false
 		checkBox chkTexSlot "Show Texture Slot" pos:[145,567] checked:false
+		checkBox chkSelObj "From Selection" pos:[290,567] checked:false
 
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,595] width:380 height:75
 		editText edtBox text:"" pos:[16,613] width:304
@@ -317,6 +318,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			chkTex.pos=[newSize[1]-110,newSize[2]-133]
 			chkmissing.pos=[20,newSize[2]-113]
 			chkTexSlot.pos=[newSize[1]/2-55,newSize[2]-113]
+			chkSelObj.pos=[newSize[1]-110,newSize[2]-113]
 
 		grpSeByName.width=newSize[1]-20
 		grpSeByName.pos=[10, newSize[2]-85]
@@ -330,7 +332,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 -----------------------------------------------
 --Progress, fill material and texture array
 -----------------------------------------------
-	fn doMaterialList sceneMaterials = (
+	fn doMaterialList materials = (
 		--reset material and texture array
 		tmpArray = #()
 		tmpSubArray = #()
@@ -340,13 +342,13 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		listBG = #()
 		listBGType = #()
 
-		if (sceneMaterials.count == 0) do (
+		if (materials.count == 0) do (
 			MessageBox "There are no materials in your current scene!" title:ProgramName
 			)
 			
-		for h = 1 to sceneMaterials.count do (
-			join tmpArray  #(tmpSubArray = #(sceneMaterials[h]))
-			join tmpSubArray #(sceneMaterials[h].name)
+		for h = 1 to materials.count do (
+			join tmpArray  #(tmpSubArray = #(materials[h]))
+			join tmpSubArray #(materials[h].name)
 			)
 			
 		fn sortByXMember tmpArray1 tmpArray2 x:2 = (
@@ -434,7 +436,12 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 --collecting material list
 -------------------------------------
 on btnSeMatAndTex pressed do (
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)	
 
 -------------------------------------
@@ -529,33 +536,69 @@ on btnChangeTex pressed do (
 					)
 				)
 
-		doMaterialList sceneMaterials
+		if (chkSelObj.checked == true) then (
+			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+			doMaterialList SelObjMats
+			) else (
+				doMaterialList sceneMaterials
+				)
 		)
 
 -------------------------------------
 --checkboxen - filter functions
 -------------------------------------
 on chkMat changed theState do (
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)
 
 on chkSub changed theState do (
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)	
 
 on chkTex changed theState do (
 	chkmissing.checked = false
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)
 
 on chkmissing changed theState do (
 	chkTex.checked = false
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)
 
 on chkTexSlot changed theState do (
-	doMaterialList sceneMaterials
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)
+	
+on chkSelObj changed theState do (
+	SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+	
+	doMaterialList SelObjMats
+	)	
 -------------------------------------
 --search material by name
 -------------------------------------
@@ -578,7 +621,12 @@ on btnSeMat pressed do (
 	selectionArraySub = #()
 
 	if (edtBox.text != "") then (
-		doMaterialList sceneMaterials
+		if (chkSelObj.checked == true) then (
+			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+			doMaterialList SelObjMats
+			) else (
+				doMaterialList sceneMaterials
+				)
 
 		--check if material or texture name exist
 		local NameMatch = undefined
