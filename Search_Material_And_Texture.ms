@@ -29,7 +29,7 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 0.91 from 2013-06-07. Last bigger modification was on 2013-06-01
+:: This is version 0.95 from 2013-06-09. Last bigger modification was on 2013-06-01
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
 :: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
@@ -37,6 +37,7 @@
 :: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
 :: 2013-06-06: Optimize the search command and add a sort function for the texture list (Jonathan Baecker)
 :: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
+:: 2013-06-09: Add show texture slot checkbox (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -57,15 +58,25 @@
 --Search texture by name function
 -------------------------------------------------------------------
 fn GetBitmapTextures mtl = (
-		local texFiles= #()
-		
-		join texFiles (getClassInstances bitmapTexture target:mtl asTrackViewPick:off)
-	
-		for texFile in texFiles do (
-			join colMats  #(colMatsS = #(texFile))
-			join colMatsS #("        " + filenameFromPath texFile.filename)
-			join colMatsS #("tex")
+	local texFiles= #()
+	local texFilesSub= #()
+	local tmp = #()
+	local tmpsub = #()
+	for a = 1 to (getNumSubTexmaps mtl) do (
+		if ((getSubTexmap mtl a) != undefined) do (
+			join texFiles #(texFilesSub= #((getClassInstances bitmapTexture target:(getSubTexmap mtl a) asTrackViewPick:off)))
+			join texFilesSub #("[" + getSubTexmapSlotName mtl a + "]")
 			)
+		)
+		
+		for b = 1 to texFiles.count do (
+			for c = 1 to texFiles[b][1].count do (
+				join colMats #(colMatsS= #(texFiles[b][1][c]))
+				join colMatsS #(texFiles[b][2])
+				join colMatsS #(filenameFromPath texFiles[b][1][c].filename)
+				join colMatsS #("tex")
+				)	
+			) 
 	)
 
 
@@ -278,7 +289,8 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		checkBox chkMat "Show Materials" pos:[20,547] checked:true
 		checkBox chkSub "Show SubMaterials" pos:[145,547] checked:true
 		checkBox chkTex "Show Textures" pos:[290,547] checked:true
-		checkBox chkmissing "Missing Texture Paths" pos:[20,567] checked:false
+		checkBox chkmissing "Missing Texture Path" pos:[20,567] checked:false
+		checkBox chkTexSlot "Show Texture Slot" pos:[145,567] checked:false
 
 	groupBox grpSeByName "Search Material And Textures By Name:" pos:[10,595] width:380 height:75
 		editText edtBox text:"" pos:[16,613] width:304
@@ -304,6 +316,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			chkSub.pos=[newSize[1]/2-55,newSize[2]-133]
 			chkTex.pos=[newSize[1]-110,newSize[2]-133]
 			chkmissing.pos=[20,newSize[2]-113]
+			chkTexSlot.pos=[newSize[1]/2-55,newSize[2]-113]
 
 		grpSeByName.width=newSize[1]-20
 		grpSeByName.pos=[10, newSize[2]-85]
@@ -365,19 +378,27 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 					join listBG  #(listBGType = #(colMats[m][1]))
 					join listBGType #(colMats[m][2])
 					join listBGType #(colMats[m][3])
-					) else if (chkTex.checked == true AND colMats[m][3] == "tex") then (
-						join listVis #(colMats[m][2])
-						join listBG  #(listBGType = #(colMats[m][1]))
-						join listBGType #(colMats[m][2])
-						join listBGType #(colMats[m][3])
-						) else if (chkmissing.checked == true AND colMats[m][3] == "tex") then (
-							if not (doesFileExist colMats[m][1].filename) do (
-								join listVis #(colMats[m][2])
-								join listBG  #(listBGType = #(colMats[m][1]))
-								join listBGType #(colMats[m][2])
-								join listBGType #(colMats[m][3])
+						) else if (chkTex.checked == true AND colMats[m][4] == "tex") then (
+							if (chkTexSlot.checked == true) then (
+								join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
+								) else (
+									join listVis #("        " + colMats[m][3])
+									)
+							join listBG  #(listBGType = #(colMats[m][1]))
+							join listBGType #(colMats[m][3])
+							join listBGType #(colMats[m][4])
+							) else if (chkmissing.checked == true AND colMats[m][4] == "tex") then (
+								if not (doesFileExist colMats[m][1].filename) do (
+									if (chkTexSlot.checked == true) then (
+										join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
+										) else (
+											join listVis #("        " + colMats[m][3])
+											)
+									join listBG  #(listBGType = #(colMats[m][1]))
+									join listBGType #(colMats[m][3])
+									join listBGType #(colMats[m][4])
+									)
 								)
-							)
 			)
 			
 			--sort array when only textures selected
@@ -389,7 +410,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 						default:0
 						)
 					)
-					qsort listBG sortByXMember 
+					qsort listBG sortByXMember x:2
 					sort listVis
 				) else if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == false AND chkmissing.checked == true) then (
 					fn sortByXMember listBG1 listBG2 x:2 = (
@@ -532,6 +553,9 @@ on chkmissing changed theState do (
 	doMaterialList sceneMaterials
 	)
 
+on chkTexSlot changed theState do (
+	doMaterialList sceneMaterials
+	)
 -------------------------------------
 --search material by name
 -------------------------------------
