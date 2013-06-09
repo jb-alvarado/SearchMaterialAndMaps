@@ -595,9 +595,12 @@ on chkTexSlot changed theState do (
 	)
 	
 on chkSelObj changed theState do (
-	SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-	
-	doMaterialList SelObjMats
+	if (chkSelObj.checked == true) then (
+		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+		doMaterialList SelObjMats
+		) else (
+			doMaterialList sceneMaterials
+			)
 	)	
 -------------------------------------
 --search material by name
