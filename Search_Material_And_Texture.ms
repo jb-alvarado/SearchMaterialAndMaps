@@ -453,7 +453,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 on btnSeMatAndTex pressed do (
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -578,7 +578,7 @@ on btnChangeTex pressed do (
 
 		if (chkSelObj.checked == true) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-			doMaterialList SelObjMats
+			doMaterialList (makeUniqueArray SelObjMats)
 			) else (
 				doMaterialList sceneMaterials
 				)
@@ -590,7 +590,7 @@ on btnChangeTex pressed do (
 on chkMat changed theState do (
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -599,7 +599,7 @@ on chkMat changed theState do (
 on chkSub changed theState do (
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -609,7 +609,7 @@ on chkTex changed theState do (
 	chkmissing.checked = false
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -619,7 +619,7 @@ on chkmissing changed theState do (
 	chkTex.checked = false
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -628,7 +628,7 @@ on chkmissing changed theState do (
 on chkTexSlot changed theState do (
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -637,7 +637,7 @@ on chkTexSlot changed theState do (
 on chkSelObj changed theState do (
 	if (chkSelObj.checked == true) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList SelObjMats
+		doMaterialList (makeUniqueArray SelObjMats)
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -666,7 +666,7 @@ on btnSeMat pressed do (
 	if (edtBox.text != "") then (
 		if (chkSelObj.checked == true) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-			doMaterialList SelObjMats
+			doMaterialList (makeUniqueArray SelObjMats)
 			) else (
 				doMaterialList sceneMaterials
 				)
