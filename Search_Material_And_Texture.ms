@@ -73,7 +73,7 @@ fn GetBitmapTextures mtl = (
 			for c = 1 to texFiles[b][1].count do (
 				join colMats #(colMatsS= #(texFiles[b][1][c]))
 				join colMatsS #(texFiles[b][2])
-				if (texFiles[b][1][c].filename == "") then (
+				if (texFiles[b][1][c].filename == undefined OR texFiles[b][1][c].filename == "") then (
 					join colMatsS #("Error: texture file is not set!")
 					) else (
 						join colMatsS #(filenameFromPath texFiles[b][1][c].filename)
@@ -394,7 +394,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 							join listBGType #(colMats[m][3])
 							join listBGType #(colMats[m][4])
 							) else if (chkmissing.checked == true AND colMats[m][4] == "tex") then (
-								if not (colMats[m][1].filename != "" AND doesFileExist colMats[m][1].filename) then (
+								if not (colMats[m][1].filename != undefined AND doesFileExist colMats[m][1].filename) then (
 									if (chkTexSlot.checked == true) then (
 										join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
 										) else (
@@ -492,10 +492,10 @@ on mlbxMatsAndTexs selectionEnd do (
 		)
 
 		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
-			if (selectionArray[1][1].filename != "") then (
-				edtMat.text = selectionArray[1][1].filename
+			if (selectionArray[1][1].filename == undefined OR selectionArray[1][1].filename == "") then (
+				edtMat.text = "Error: texture file is not set!"
 				) else (
-					edtMat.text = "Error: texture file is not set!"
+					edtMat.text = selectionArray[1][1].filename
 					)
 			) else if (selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material) then (
 				edtMat.text = selectionArray[1][1].name
@@ -558,8 +558,8 @@ on btnChangeTex pressed do (
 					filepath = getFilenamePath selectionArray[1][1].filename
 					folder = getSavePath caption:"Select Path:" initialDir:(filepath)
 					) catch (
-					MessageBox "Please change undefined texture file by file!" title:ProgramName
-					)
+						MessageBox "Please change undefined texture file by file!" title:ProgramName
+						)
 					
 				if folder != undefined do (
 					inDir = getFilenamePath (folder + "/")
@@ -567,10 +567,10 @@ on btnChangeTex pressed do (
 						try (selectionArray[y][1].filename = (inDir + filenameFromPath selectionArray[y][1].filename)
 							edtMat.text = inDir
 							) catch (
-							MessageBox "Please change undefined texture file by file!" title:ProgramName
-							edtMat.text = "Error: texture file is not set!"
-							exit
-							)
+								MessageBox "Please change undefined texture file by file!" title:ProgramName
+								edtMat.text = "Error: texture file is not set!"
+								exit
+								)
 						
 						)
 					)
