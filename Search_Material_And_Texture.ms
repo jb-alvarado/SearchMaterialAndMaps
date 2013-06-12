@@ -79,7 +79,7 @@ fn GetBitmapTextures mtl = (
 						join colMatsS #(filenameFromPath texFiles[b][1][c].filename)
 						)
 				join colMatsS #("tex")
-				)	
+				)
 			) 
 	)
 
@@ -394,27 +394,26 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 							join listBGType #(colMats[m][3])
 							join listBGType #(colMats[m][4])
 							) else if (chkmissing.checked == true AND colMats[m][4] == "tex") then (
-								if not (colMats[m][1].filename != undefined AND doesFileExist colMats[m][1].filename) then (
+								if (colMats[m][3] == "Error: texture file is not set!") then (
 									if (chkTexSlot.checked == true) then (
+										join listVis #("        Error: texture file is not set!  " + colMats[m][2])
+										) else (
+											join listVis #("        Error: texture file is not set!")
+											)
+										join listBG  #(listBGType = #(colMats[m][1]))
+										join listBGType #(colMats[m][3])
+										join listBGType #(colMats[m][4])
+									) else if not (doesFileExist colMats[m][1].filename) then (
+										if (chkTexSlot.checked == true) then (
 										join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
 										) else (
 											join listVis #("        " + colMats[m][3])
 											)
-									join listBG  #(listBGType = #(colMats[m][1]))
-									join listBGType #(colMats[m][3])
-									join listBGType #(colMats[m][4])
-									) else (
-										if (colMats[m][3] == "Error: texture file is not set!") do (
-											if (chkTexSlot.checked == true) then (
-												join listVis #("        Error: texture file is not set!  " + colMats[m][2])
-												) else (
-													join listVis #("        Error: texture file is not set!")
-													)
-											join listBG  #(listBGType = #(colMats[m][1]))
-											join listBGType #(colMats[m][3])
-											join listBGType #(colMats[m][4])
-											)
+										join listBG  #(listBGType = #(colMats[m][1]))
+										join listBGType #(colMats[m][3])
+										join listBGType #(colMats[m][4])
 										)
+
 								)
 			)
 			
@@ -502,14 +501,14 @@ on mlbxMatsAndTexs selectionEnd do (
 				) else if (selectionArray.count > 1) then (
 					for t = 1 to selectionArray.count do (
 						if (selectionArray[t][2] == "tex") then (
-							if (selectionArray[t][1].filename != "") then (
-								edtMat.text = getFilenamePath selectionArray[1][1].filename
+							if (selectionArray[t][1].filename == undefined OR selectionArray[t][1].filename == "") then (
+								messagebox "Texture file is not set, please correct this first!" title:ProgramName
+								deleteItem selectionArray t
+								deleteItem selectionNums t
+								mlbxMatsAndTexs.selection = selectionNums
+								exit
 								) else (
-									messagebox "Texture file is not set, please correct this first!" title:ProgramName
-									deleteItem selectionArray t
-									deleteItem selectionNums t
-									mlbxMatsAndTexs.selection = selectionNums
-									exit
+									edtMat.text = getFilenamePath selectionArray[1][1].filename
 									)
 							) else if (superclassof selectionArray[t][1] == Material ) then (
 								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
@@ -710,7 +709,7 @@ on btnSeMat pressed do (
 				join selectionArraySub #(listBG[NameIndex][3])
 
 				if (listBG[NameIndex][3] == "tex") then (
-					edtMat.text = getFilenamePath listBG[NameIndex][1].filename + filenameFromPath listBG[NameIndex][1].filename
+					try (edtMat.text = listBG[NameIndex][1].filename) catch (edtMat.text = "Error: texture file is not set!")
 					) else if (superClassOf listBG[NameIndex][1] == Material) then (
 						edtMat.text = listBG[NameIndex][1].name
 						)
