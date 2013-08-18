@@ -38,7 +38,7 @@
 :: 2013-06-06: Optimize the search command and add a sort function for the texture list (Jonathan Baecker)
 :: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
 :: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
-::
+:: 2013-07-18: make marcoscript for using the script as a button.
 ----------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -50,6 +50,12 @@
 ----------------------------------------------------------------------------------------------------------------------
 */
 
+macroScript SearchMaterialsAndTextures
+ category:"jb_scripts"
+ ButtonText:"SearchMaterialsAndTextures"
+ Tooltip:"Search Materials And Textures"
+( 
+local SearchMaterialsAndTextures
 (
 	global colMats = #()
 	global colMatsS = #()
@@ -289,7 +295,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		button btnSelObj "Select Objects By Material" pos:[240,95] width:140 height:20
 		editText edtMat "" pos:[16,122] width:300 readOnly:true
 		button btnChangeTex "Browse" pos:[320,122] width:60 height:18
-		dotNetControl mlbxMatsAndTexs "system.windows.forms.listView" pos:[20,145] width:360 height:395
+		multiListBox mlbxMatsAndTexs "" pos:[20,145] width:360 height:30
 		checkBox chkMat "Show Materials" pos:[20,547] checked:true
 		checkBox chkSub "Show SubMaterials" pos:[145,547] checked:true
 		checkBox chkTex "Show Textures" pos:[290,547] checked:true
@@ -317,9 +323,6 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			btnChangeTex.pos=[newSize[1]-80,122] 
 			mlbxMatsAndTexs.width=newSize[1]-40
 			mlbxMatsAndTexs.height=newSize[2]-284
-		
-			try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-61) catch ()
-		
 			chkMat.pos=[20,newSize[2]-133]
 			chkSub.pos=[newSize[1]/2-55,newSize[2]-133]
 			chkTex.pos=[newSize[1]-110,newSize[2]-133]
@@ -336,25 +339,11 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 			btnMoveMat.pos=[newSize[1]-70,newSize[2]-39]
 		)
 
-	on SearchMaterialAndTextures open do (
-		--Setup the forms view
-		--mlbxMatsAndTexs.HeaderStyle = none
-		mlbxMatsAndTexs.columns.add "Material and Texture List" 339
-		mlbxMatsAndTexs.view=(dotNetClass "system.windows.forms.view").details
-		mlbxMatsAndTexs.FullRowSelect=true		--Set so full width of listView is selected and not just first column.
-		mlbxMatsAndTexs.GridLines=false			--Show lines between the items. 
-		mlbxMatsAndTexs.MultiSelect=true			--Allow for multiple selections. 
-		cb = ((colorman.getColor #background)*255+20) as color
-		mlbxMatsAndTexs.BackColor = (dotNetClass "System.Drawing.Color").fromARGB cb.r cb.g cb.b
-		cf = ((colorman.getColor #text)*255+30) as color
-		mlbxMatsAndTexs.ForeColor = (dotNetClass "System.Drawing.Color").fromARGB cf.r cf.g cf.b
-	)
 -----------------------------------------------
 --Progress, fill material and texture array
 -----------------------------------------------
 	fn doMaterialList materials = (
 		--reset material and texture array
-		mlbxMatsAndTexs.items.clear()
 		tmpArray = #()
 		tmpSubArray = #()
 		colMats = #()
@@ -362,8 +351,6 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		listVis = #()
 		listBG = #()
 		listBGType = #()
-		
-	--	if (mlbxMatsAndTexs.columns.count == 0 AND chkMat.checked == true) do (mlbxMatsAndTexs.columns.add "Material and Texture List" 339)
 
 		if (materials.count == 0) do (
 			MessageBox "There are no materials in your current scene!" title:ProgramName
@@ -394,34 +381,20 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 		--get names from materials and textures
 		for m = 1 to colMats.count do (
 			if (chkMat.checked == true AND colMats[m][3] == "mat") then (
-				li=dotNetObject "System.Windows.Forms.ListViewItem" colMats[m][2]
-				cli = ((colorman.getColor #background)*255+10) as color
-				li.backColor=li.backColor.fromARGB cli.r cli.g cli.b
-				append listVis li
-
+				join listVis #(colMats[m][2])
 				join listBG  #(listBGType = #(colMats[m][1]))
 				join listBGType #(colMats[m][2])
 				join listBGType #(colMats[m][3])
 				) else if (chkSub.checked == true AND colMats[m][3] == "sub") then (
-					li=dotNetObject "System.Windows.Forms.ListViewItem" colMats[m][2]
-					cls = ((colorman.getColor #background)*255+20) as color
-					li.backColor=li.backColor.fromARGB cls.r cls.g cls.b
-					append listVis li
-					
+					join listVis #(colMats[m][2])
 					join listBG  #(listBGType = #(colMats[m][1]))
 					join listBGType #(colMats[m][2])
 					join listBGType #(colMats[m][3])
 						) else if (chkTex.checked == true AND colMats[m][4] == "tex") then (
-							if (chkTexSlot.checked == true) then (								
-								li=dotNetObject "System.Windows.Forms.ListViewItem" ("        " + colMats[m][3] + "  " + colMats[m][2])
-								clt = ((colorman.getColor #background)*255+30) as color
-								li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-								append listVis li
+							if (chkTexSlot.checked == true) then (
+								join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
 								) else (
-									li=dotNetObject "System.Windows.Forms.ListViewItem" ("        " + colMats[m][3])
-									clt = ((colorman.getColor #background)*255+30) as color
-									li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-									append listVis li
+									join listVis #("        " + colMats[m][3])
 									)
 							join listBG  #(listBGType = #(colMats[m][1]))
 							join listBGType #(colMats[m][3])
@@ -429,30 +402,18 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 							) else if (chkmissing.checked == true AND colMats[m][4] == "tex") then (
 								if (colMats[m][3] == "Error: texture file is not set!") then (
 									if (chkTexSlot.checked == true) then (
-										li=dotNetObject "System.Windows.Forms.ListViewItem" ("        Error: texture file is not set!  " + colMats[m][2])
-										clt = ((colorman.getColor #background)*255+30) as color
-										li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-										append listVis li
+										join listVis #("        Error: texture file is not set!  " + colMats[m][2])
 										) else (
-											li=dotNetObject "System.Windows.Forms.ListViewItem" ("        Error: texture file is not set!")
-											clt = ((colorman.getColor #background)*255+30) as color
-											li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-											append listVis li
+											join listVis #("        Error: texture file is not set!")
 											)
 										join listBG  #(listBGType = #(colMats[m][1]))
 										join listBGType #(colMats[m][3])
 										join listBGType #(colMats[m][4])
 									) else if not (doesFileExist colMats[m][1].filename) then (
 										if (chkTexSlot.checked == true) then (
-										li=dotNetObject "System.Windows.Forms.ListViewItem" ("        " + colMats[m][3] + "  " + colMats[m][2])
-										clt = ((colorman.getColor #background)*255+30) as color
-										li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-										append listVis li
+										join listVis #("        " + colMats[m][3] + "  " + colMats[m][2])
 										) else (
-											li=dotNetObject "System.Windows.Forms.ListViewItem" ("        " + colMats[m][3])
-											clt = ((colorman.getColor #background)*255+30) as color
-											li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
-											append listVis li
+											join listVis #("        " + colMats[m][3])
 											)
 										join listBG  #(listBGType = #(colMats[m][1]))
 										join listBGType #(colMats[m][3])
@@ -461,11 +422,6 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 
 								)
 			)
-			
-								
-			
-			--fill the listBox mlbxMatsAndTexs box 
-			mlbxMatsAndTexs.items.addRange listVis
 			
 			--sort array when only textures selected
 			if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == true AND chkmissing.checked == false) then (
@@ -477,8 +433,7 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 						)
 					)
 					qsort listBG sortByXMember x:2
-					local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
-					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+					sort listVis
 				) else if (chkMat.checked == false AND chkSub.checked == false AND chkTex.checked == false AND chkmissing.checked == true) then (
 					fn sortByXMember listBG1 listBG2 x:2 = (
 						case of (
@@ -488,9 +443,11 @@ rollout SearchMaterialAndTextures "Search Materials And Textures" width:400 heig
 							)
 						)
 					qsort listBG sortByXMember x:2
-					local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
-					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+					sort listVis
 					)
+					
+			--fill the listBox mlbxMatsAndTexs box 
+			mlbxMatsAndTexs.items = listVis
 		)
 
 -------------------------------------
@@ -591,7 +548,7 @@ on btnChangeTex pressed do (
 			caption:"Select Bitmap Image File" \
 			filename:filepath \
 			types:"All Files (*.*)|*.*|AVI File (*.avi)|*.avi|Mpeg File (*.mpg,*.mpeg)|*.mpg;*.mpeg|BMP Image File (*.bmp)|*.bmp|Kodak Cineon (*.cin)|*.cin\
-				|Combustion* by Discreet (*.cws)|*.cws|OpenEXR Image File (*.exr)|*.exr|GIF Image File (*.gif)|*.gif|Radiance Image File (HDRI) (*.hdr*.pic)|*.hdr;*.pic\
+				|Combustion* by Discreet (*.cws)|*.cws|OpenEXR Image File (*.exr)|*.exr|GIF Image File (*.gif)|*.gif|Radiance Image File (HDRI) (*.hdr;*.pic)|*.hdr;*.pic\
 				|ILF Image File (*.ifl)|*.ifl|JPEG Image File (*.jpg,*.jpe,*.jpeg)|*.jpg;*.jpe;*.jpeg|PNG Image File (*.png)|*.png|Adobe PSD Reader (*.psd)|*.psd\
 				|MOV QuickTime File (*.mov)|*.mov|SGI Image File (*.rgb,*.rgba,*.sgi,*.int,*.inta,*.bw)|*.rgb;*.rgba;*.sgi;*.int;*.inta,*.bw|RLA Image File (*.rla)|*.rla\
 				|RPF (*.rpf)|*.rpf|Targa Image File (*.tga)|*.tga|Tif Image File (*.tif,*.tif)|*.tif;*.tiff|YUV Image File (*.yuv)|*.yuv|DDS Image File (*.dds)|*.dds|" \
@@ -803,3 +760,5 @@ try ( destroyDialog SearchMaterialAndTextures )
 
 	createDialog SearchMaterialAndTextures style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox, #style_resizing)
 ) --script end
+
+)
