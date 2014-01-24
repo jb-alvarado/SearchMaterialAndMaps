@@ -759,6 +759,8 @@ try ( destroyDialog SearchMaterialAndTextures )
 	catch (	MessageBox "Dialog not found!" )
 
 	createDialog SearchMaterialAndTextures style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox, #style_resizing)
+	cui.RegisterDialogBar SearchMaterialAndTextures minSize:[400, 680] maxSize:[-1, 1200] style:#(#cui_dock_vert, #cui_floatable, #cui_handles)
+
 ) --script end
 
 )
