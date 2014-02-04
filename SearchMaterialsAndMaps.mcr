@@ -884,18 +884,41 @@ struct lv_context_menu (
 		),
 	fn SelectObjectsByMaterial = (
 		if (selectionArray.count == 1) then (
-		if (selectionArray[1][2] == "mat") then (
-			select (for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj)
-			) else if (selectionArray[1][2] == "tex") then (
-				messagebox "Please select a material! Your corrent selection is a texture..." title:ProgramName
-				) else if (selectionArray[1][2] == "sub") then (
-					messagebox "Please select a material! Your corrent selection is a subMaterial..." title:ProgramName
+			if (selectionArray[1][2] == "mat") then (
+				objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj
+					
+				-- Check if the obj is part of a group
+				for obj in objArray where isGroupMember obj AND (NOT isOpenGroupMember obj) do (
+					par = obj.parent
+					while par != undefined do (
+						if isGroupHead par then (
+							setGroupOpen par true
+							par = undefined
+							) else (
+								par = par.parent
+								)
+						)
 					)
-		) else if (selectionArray.count == 0) then (
-			messagebox "No material selected..." title:ProgramName
-			) else (
-				messagebox "Please select a material!" title:ProgramName
-				)
+					select objArray
+					
+					for o in objArray where not(o.layer.on) do o.layer.on = true
+					for o in objArray where o.layer.isFrozen do o.layer.isFrozen = false
+					for o in objArray where o.isHidden do o.isHidden = false
+					for o in objArray where o.isFrozen do o.isFrozen = false
+					select objArray
+					
+				) else if (selectionArray[1][2] == "tex") then (
+					messagebox "Please select a material! Your corrent selection is a texture..." title:ProgramName
+					) else if (selectionArray[1][2] == "sub") then (
+						messagebox "Please select a material! Your corrent selection is a subMaterial..." title:ProgramName
+						) else (
+							messagebox "Please select a material! Your corrent selection is a map..." title:ProgramName
+							)
+			) else if (selectionArray.count == 0) then (
+				messagebox "No material selected..." title:ProgramName
+				) else (
+					messagebox "Please select a material!" title:ProgramName
+					)
 		),
 	fn RefreshList = (
 		doMaterialList sceneMaterials
