@@ -26,7 +26,7 @@ The Script is now also dockable and it have a rigith click menu:
 Download
 --------
 
-### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndTexture/archive/master.zip)
+### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndMaps/archive/master.zip)
 
 Current release is **v1.0**
 
