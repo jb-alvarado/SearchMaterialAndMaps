@@ -39,6 +39,7 @@
 :: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
 :: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
 :: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons (Jonathan Baecker)
+:: 2014-02-05: fix fillup map array and add vray2side material (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -69,6 +70,8 @@ local SearchMaterialsAndTextures
 fn GetMaps mapName = (
 	case classof mapName of (			
 		compositeTextureMap: (
+			join mapFiles #( mapName )
+			
 			for b = 1 to mapName.maplist.count do (
 				if classof mapName.maplist[b] != Bitmaptexture then (
 					GetMaps mapName.maplist[b]
@@ -79,6 +82,8 @@ fn GetMaps mapName = (
 			)
 		
 		cellular: (
+			join mapFiles #( mapName )
+			
 			if mapName.cellmap != undefined do (
 				if classof mapName.cellmap != Bitmaptexture then (
 					GetMaps mapName.cellmap
@@ -103,6 +108,8 @@ fn GetMaps mapName = (
 			)
 			
 		mix: (
+			join mapFiles #( mapName )
+			
 			if mapName.map1 != undefined do (
 				if classof mapName.map1 != Bitmaptexture then (
 					GetMaps mapName.map1
@@ -120,6 +127,8 @@ fn GetMaps mapName = (
 			)
 			
 		noise: (
+			join mapFiles #( mapName )
+			
 			if mapName.map1 != undefined do (
 				if classof mapName.map1 != Bitmaptexture then (
 					GetMaps mapName.map1
@@ -156,6 +165,8 @@ fn GetMaps mapName = (
 			)
 			
 		Speckle: (
+			join mapFiles #( mapName )
+			
 			if mapName.map1 != undefined do (
 				if classof mapName.map1 != Bitmaptexture then (
 					GetMaps mapName.map1
@@ -173,6 +184,8 @@ fn GetMaps mapName = (
 			)
 		
 		Checker: (
+			join mapFiles #( mapName )
+			
 			if mapName.map1 != undefined do (
 				if classof mapName.map1 != Bitmaptexture then (
 					GetMaps mapName.map1
@@ -190,6 +203,8 @@ fn GetMaps mapName = (
 			)
 		
 		ColorCorrection: (
+			join mapFiles #( mapName )
+			
 			if mapName.map != undefined do (
 				if classof mapName.map != Bitmaptexture then (
 					GetMaps mapName.map
@@ -198,8 +213,30 @@ fn GetMaps mapName = (
 						)
 				)	
 			)
-
+		
+		Falloff: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+				
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
 		gradient: (
+			join mapFiles #( mapName )
+			
 			if mapName.map1 != undefined do (
 				if classof mapName.map1 != Bitmaptexture then (
 					GetMaps mapName.map1
@@ -250,7 +287,7 @@ fn GetBitmaps mtl = (
 			join colMatsS #( classof mapArray[b][c] )
 			if classof mapArray[b][c] == bitmaptexture then (
 				if ( mapArray[b][c].filename == undefined OR mapArray[b][c].filename == "" ) then (
-					join colMatsS #( "Error: texture file is not set!" )
+					join colMatsS #( "Warning: empty bitmap texture!" )
 					) else (
 						join colMatsS #( filenameFromPath mapArray[b][c].filename )
 						)
@@ -267,234 +304,258 @@ fn GetBitmaps mtl = (
 --Search material by name function
 -------------------------------------------------------------------
 fn matlists mtl = (
-		case classof mtl of (
-			--------------------------------------------------
-			--Blend
-			--------------------------------------------------
-			Blend: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
+	local checkType = #(Blend, CompositeMaterial, doubleSided, MultiMaterial, Shellac, Shell_Material, TopBottom, VRay2SidedMtl)
+	
+	case classof mtl of (
+		--------------------------------------------------
+		--Blend
+		--------------------------------------------------
+		Blend: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
 
-				local blendMat = #()
+			local blendMat = #()
 
-				if (mtl.map1 != undefined ) do (
-					if ( classof mtl.map1 == CompositeMaterial OR classof mtl.map1 == MultiMaterial OR classof mtl.map1 == doubleSided OR \
-							classof mtl.map1 == TopBottom OR classof mtl.map1 == Shellac OR classof mtl.map1 == Blend ) then (
-							matlists mtl.map1
-							) else (
-								join colMats  #( colMatsS = #( mtl.map1 ) )
-								join colMatsS #( "    " + mtl.map1.name )
-								join colMatsS #( "sub" )
+			if (mtl.map1 != undefined ) do (
+				if ( findItem checkType ( classof mtl.map1 ) == 1 ) then (
+						matlists mtl.map1
+						) else (
+							join colMats  #( colMatsS = #( mtl.map1 ) )
+							join colMatsS #( "    " + mtl.map1.name )
+							join colMatsS #( "sub" )
 
-								GetBitmaps mtl.map1
-								)
-					)
-				if ( mtl.map2 != undefined ) do (
-					if ( classof mtl.map2 == CompositeMaterial OR classof mtl.map2 == MultiMaterial OR classof mtl.map2 == doubleSided OR \
-							classof mtl.map2 == TopBottom OR classof mtl.map2 == Shellac OR classof mtl.map2 == Blend == Blend ) then (
-							matlists mtl.map2
-							) else (
-								join colMats  #( colMatsS = #( mtl.map2 ) )
-								join colMatsS #( "    " + mtl.map2.name )
-								join colMatsS #( "sub" )
-									
-								GetBitmaps mtl.map2
-								)
-					)
-			)
-			--------------------------------------------------
-			--Shellac
-			--------------------------------------------------
-			Shellac: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
-
-				if ( mtl.shellacMtl1 != undefined ) do (
-					if ( classof mtl.shellacMtl1 == CompositeMaterial OR classof mtl.shellacMtl1 == MultiMaterial OR classof mtl.shellacMtl1 == doubleSided OR \
-							classof mtl.shellacMtl1 == TopBottom OR classof mtl.shellacMtl1 == Shellac OR classof mtl.shellacMtl1 == Blend ) then (
-							matlists mtl.shellacMtl1
-							) else (
-								join colMats  #( colMatsS = #( mtl.shellacMtl1 ) )
-								join colMatsS #( "    " + mtl.shellacMtl1.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.shellacMtl1
-								)
-					)
-				if ( mtl.shellacMtl2 != undefined ) do (
-					if ( classof mtl.shellacMtl2 == CompositeMaterial OR classof mtl.shellacMtl2 == MultiMaterial OR classof mtl.shellacMtl2 == doubleSided OR \
-							classof mtl.shellacMtl2 == TopBottom OR classof mtl.shellacMtl2 == Shellac OR classof mtl.shellacMtl2 == Blend ) then (
-							matlists mtl.shellacMtl2
-							) else (
-								join colMats  #( colMatsS = #( mtl.shellacMtl2 ) )
-								join colMatsS #( "    " + mtl.shellacMtl2.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.shellacMtl2
-								)
-					)
-			)
-			--------------------------------------------------
-			--TopBottom 
-			--------------------------------------------------
-			TopBottom: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
-
-				if ( mtl.topMaterial != undefined ) do (
-					if ( classof mtl.topMaterial == CompositeMaterial OR classof mtl.topMaterial == MultiMaterial OR classof mtl.topMaterial == doubleSided OR \
-							classof mtl.topMaterial == TopBottom OR classof mtl.topMaterial == Shellac OR classof mtl.topMaterial == Blend ) then (
-							matlists mtl.topMaterial
-							) else (
-								join colMats  #( colMatsS = #( mtl.topMaterial ) )
-								join colMatsS #( "    " + mtl.topMaterial.name )
-								join colMatsS #( "sub" )	
-
-								GetBitmaps mtl.topMaterial
-								)
-					)
-				if ( mtl.bottomMaterial != undefined ) do (
-					if ( classof mtl.bottomMaterial == CompositeMaterial OR classof mtl.bottomMaterial == MultiMaterial OR classof mtl.bottomMaterial == doubleSided OR \
-							classof mtl.bottomMaterial == TopBottom OR classof mtl.bottomMaterial == Shellac OR classof mtl.bottomMaterial == Blend ) then (
-							matlists mtl.bottomMaterial
-							) else (
-								join colMats  #( colMatsS = #( mtl.bottomMaterial ) )
-								join colMatsS #( "    " + mtl.bottomMaterial.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.bottomMaterial
-								)
-					)
-			)
-			--------------------------------------------------
-			--DoubleSided 
-			--------------------------------------------------
-			doubleSided: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
-
-				if ( mtl.material1 != undefined ) do (
-					if ( classof mtl.material1 == CompositeMaterial OR classof mtl.material1 == MultiMaterial OR classof mtl.material1 == doubleSided OR \
-							classof mtl.material1 == TopBottom OR classof mtl.material1 == Shellac OR classof mtl.material1 == Blend ) then (
-							matlists mtl.material1
-							) else (
-								join colMats  #( colMatsS = #( mtl.material1 ) )
-								join colMatsS #( "    " + mtl.material1.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.material1
-								)
-					)
-				if ( mtl.material2 != undefined ) do (
-					if ( classof mtl.material2 == CompositeMaterial OR classof mtl.material2 == MultiMaterial OR classof mtl.material2 == doubleSided OR \
-							classof mtl.material2 == TopBottom OR classof mtl.material2 == Shellac OR classof mtl.material2 == Blend ) then (
-							matlists mtl.material2
-							) else (
-								join colMats  #( colMatsS = #( mtl.material2 ) )
-								join colMatsS #( "    " + mtl.material2.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.material2	
-								)
-					)
-			)
-			--------------------------------------------------
-			--Shell_Material 
-			--------------------------------------------------
-			Shell_Material: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
-
-				if ( mtl.originalMaterial != undefined ) do (
-					if ( classof mtl.originalMaterial == CompositeMaterial OR classof mtl.originalMaterial == MultiMaterial OR classof mtl.originalMaterial == doubleSided OR \
-							classof mtl.originalMaterial == TopBottom OR classof mtl.originalMaterial == Shellac OR classof mtl.originalMaterial == Blend ) then (
-							matlists mtl.originalMaterial
-							) else (
-								join colMats  #( colMatsS = #(mtl.originalMaterial ) )
-								join colMatsS #( "    " + mtl.originalMaterial.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.originalMaterial
-								)
-					)
-				if ( mtl.bakedMaterial != undefined ) do (
-					if ( classof mtl.bakedMaterial == CompositeMaterial OR classof mtl.bakedMaterial == MultiMaterial OR classof mtl.bakedMaterial == doubleSided OR \
-							classof mtl.bakedMaterial == TopBottom OR classof mtl.bakedMaterial == Shellac OR classof mtl.bakedMaterial == Blend ) then (
-							matlists mtl.bakedMaterial
-							) else (
-								join colMats  #( colMatsS = #(mtl.bakedMaterial ) )
-								join colMatsS #( "    " + mtl.bakedMaterial.name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.bakedMaterial
-								)
-					)
-			)
-			--------------------------------------------------
-			-- Multimaterials
-			--------------------------------------------------
-			MultiMaterial: (
-				join colMats  #( colMatsS = #( mtl ) )
-				join colMatsS #( mtl.name )
-				join colMatsS #( "mat" )
-
-				local m
-				for m = 1 to mtl.numsubs do (
-					if ( mtl[m] != undefined ) do (
-						if ( classof mtl[m] == CompositeMaterial OR classof mtl[m] == MultiMaterial OR classof mtl[m] == doubleSided OR \
-							classof mtl[m] == TopBottom OR classof mtl[m] == Shellac OR classof mtl[m] == Blend ) then (
-							matlists mtl[m]
-							) else (
-								join colMats  #( colMatsS = #(mtl[m] ) )
-								join colMatsS #( "    " + mtl[m].name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl[m]
-								)
-						)
+							GetBitmaps mtl.map1
+							)
 				)
-		 	)
-			--------------------------------------------------
-			--CompositeMaterial
-			--------------------------------------------------
-			CompositeMaterial: (
-				join colMats  #(colMatsS = #(mtl))
-				join colMatsS #(mtl.name)
-				join colMatsS #("mat")
-
-				local c
-				for c = 1 to mtl.materialList.count do (
-					if ( mtl.materialList[c] != undefined ) do (
-						if ( classof mtl.materialList[c] == CompositeMaterial OR classof mtl.materialList[c] == MultiMaterial OR classof mtl.materialList[c] == doubleSided OR \
-							classof mtl.materialList[c] == TopBottom OR classof mtl.materialList[c] == Shellac OR classof mtl.materialList[c] == Blend ) then (
-							matlists mtl.materialList[c]
-							) else (
-								join colMats  #( colMatsS = #( mtl.materialList[c] ) )
-								join colMatsS #( "    " + mtl.materialList[c].name )
-								join colMatsS #( "sub" )
-
-								GetBitmaps mtl.materialList[c]
-								)
-						)
+			if ( mtl.map2 != undefined ) do (
+				if ( findItem checkType ( classof mtl.map2 ) == 1 ) then (
+						matlists mtl.map2
+						) else (
+							join colMats  #( colMatsS = #( mtl.map2 ) )
+							join colMatsS #( "    " + mtl.map2.name )
+							join colMatsS #( "sub" )
+								
+							GetBitmaps mtl.map2
+							)
 				)
-		 	)
-			--------------------------------------------------
-			--all other materials
-			--------------------------------------------------
-			default: (
-				if ( superclassof mtl == material ) do (
-					join colMats  #( colMatsS = #( mtl ) )
-					join colMatsS #( mtl.name )
-					join colMatsS #( "mat" )
+		)
+		--------------------------------------------------
+		--Shellac
+		--------------------------------------------------
+		Shellac: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
 
-					GetBitmaps mtl
+			if ( mtl.shellacMtl1 != undefined ) do (
+				if ( findItem checkType ( classof mtl.shellacMtl1 ) == 1 ) then (
+						matlists mtl.shellacMtl1
+						) else (
+							join colMats  #( colMatsS = #( mtl.shellacMtl1 ) )
+							join colMatsS #( "    " + mtl.shellacMtl1.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.shellacMtl1
+							)
+				)
+			if ( mtl.shellacMtl2 != undefined ) do (
+				if ( findItem checkType ( classof mtl.shellacMtl2 ) == 1 ) then (
+						matlists mtl.shellacMtl2
+						) else (
+							join colMats  #( colMatsS = #( mtl.shellacMtl2 ) )
+							join colMatsS #( "    " + mtl.shellacMtl2.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.shellacMtl2
+							)
+				)
+		)
+		--------------------------------------------------
+		--TopBottom 
+		--------------------------------------------------
+		TopBottom: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
+
+			if ( mtl.topMaterial != undefined ) do (
+				if ( findItem checkType ( classof mtl.topMaterial ) == 1 ) then (
+						matlists mtl.topMaterial
+						) else (
+							join colMats  #( colMatsS = #( mtl.topMaterial ) )
+							join colMatsS #( "    " + mtl.topMaterial.name )
+							join colMatsS #( "sub" )	
+
+							GetBitmaps mtl.topMaterial
+							)
+				)
+			if ( mtl.bottomMaterial != undefined ) do (
+				if ( findItem checkType ( classof mtl.bottomMaterial ) == 1 ) then (
+						matlists mtl.bottomMaterial
+						) else (
+							join colMats  #( colMatsS = #( mtl.bottomMaterial ) )
+							join colMatsS #( "    " + mtl.bottomMaterial.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.bottomMaterial
+							)
+				)
+		)
+		--------------------------------------------------
+		--DoubleSided 
+		--------------------------------------------------
+		doubleSided: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
+
+			if ( mtl.material1 != undefined ) do (
+				if ( findItem checkType ( classof mtl.material1 ) == 1 ) then (
+						matlists mtl.material1
+						) else (
+							join colMats  #( colMatsS = #( mtl.material1 ) )
+							join colMatsS #( "    " + mtl.material1.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.material1
+							)
+				)
+			if ( mtl.material2 != undefined ) do (
+				if ( findItem checkType ( classof mtl.material2 ) == 1 ) then (
+						matlists mtl.material2
+						) else (
+							join colMats  #( colMatsS = #( mtl.material2 ) )
+							join colMatsS #( "    " + mtl.material2.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.material2	
+							)
+				)
+		)
+		--------------------------------------------------
+		--VRay2Side
+		--------------------------------------------------
+		VRay2SidedMtl: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
+
+			if ( mtl.frontMtl != undefined ) do (
+				if ( findItem checkType ( classof mtl.frontMtl ) == 1 ) then (
+						matlists mtl.frontMtl
+						) else (
+							join colMats  #( colMatsS = #( mtl.frontMtl ) )
+							join colMatsS #( "    " + mtl.frontMtl.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.frontMtl
+							)
+				)
+			if ( mtl.backMtl != undefined ) do (
+				if ( findItem checkType ( classof mtl.backMtl ) == 1 ) then (
+						matlists mtl.backMtl
+						) else (
+							join colMats  #( colMatsS = #( mtl.backMtl ) )
+							join colMatsS #( "    " + mtl.backMtl.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.backMtl	
+							)
+				)
+			if ( mtl.texmap_translucency != undefined ) do (
+				GetBitmaps mtl
+				)	
+		)
+		--------------------------------------------------
+		--Shell_Material 
+		--------------------------------------------------
+		Shell_Material: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
+
+			if ( mtl.originalMaterial != undefined ) do (
+				if ( findItem checkType ( classof mtl.originalMaterial ) == 1 ) then (
+						matlists mtl.originalMaterial
+						) else (
+							join colMats  #( colMatsS = #(mtl.originalMaterial ) )
+							join colMatsS #( "    " + mtl.originalMaterial.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.originalMaterial
+							)
+				)
+			if ( mtl.bakedMaterial != undefined ) do (
+				if ( findItem checkType ( classof mtl.bakedMaterial ) == 1 ) then (
+						matlists mtl.bakedMaterial
+						) else (
+							join colMats  #( colMatsS = #(mtl.bakedMaterial ) )
+							join colMatsS #( "    " + mtl.bakedMaterial.name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.bakedMaterial
+							)
+				)
+		)
+		--------------------------------------------------
+		-- Multimaterials
+		--------------------------------------------------
+		MultiMaterial: (
+			join colMats  #( colMatsS = #( mtl ) )
+			join colMatsS #( mtl.name )
+			join colMatsS #( "mat" )
+
+			local m
+			for m = 1 to mtl.numsubs do (
+				if ( mtl[m] != undefined ) do (
+					if ( findItem checkType ( classof mtl[m] ) == 1 ) then (
+						matlists mtl[m]
+						) else (
+							join colMats  #( colMatsS = #(mtl[m] ) )
+							join colMatsS #( "    " + mtl[m].name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl[m]
+							)
 					)
 			)
+		)
+		--------------------------------------------------
+		--CompositeMaterial
+		--------------------------------------------------
+		CompositeMaterial: (
+			join colMats  #(colMatsS = #(mtl))
+			join colMatsS #(mtl.name)
+			join colMatsS #("mat")
+
+			local c
+			for c = 1 to mtl.materialList.count do (
+				if ( mtl.materialList[c] != undefined ) do (
+					if ( findItem checkType ( classof mtl.materialList[c] ) == 1 ) then (
+						matlists mtl.materialList[c]
+						) else (
+							join colMats  #( colMatsS = #( mtl.materialList[c] ) )
+							join colMatsS #( "    " + mtl.materialList[c].name )
+							join colMatsS #( "sub" )
+
+							GetBitmaps mtl.materialList[c]
+							)
+					)
+			)
+		)
+		--------------------------------------------------
+		--all other materials
+		--------------------------------------------------
+		default: (
+			if ( superclassof mtl == material ) do (
+				join colMats  #( colMatsS = #( mtl ) )
+				join colMatsS #( mtl.name )
+				join colMatsS #( "mat" )
+
+				GetBitmaps mtl
+				)
+		)
 			
 		) --case end
 		
@@ -663,14 +724,14 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 							join listBGType #( colMats[m][3] )
 							join listBGType #( colMats[m][4] )
 							) else if ( chkmissing.checked == true AND colMats[m][4] == "tex" ) then (
-								if ( colMats[m][3] == "Error: texture file is not set!" ) then (
+								if ( colMats[m][3] == "Warning: empty bitmap texture!" ) then (
 									if ( chkTex.checked == true ) then (
-										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Error: texture file is not set!  " )
+										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!  " )
 										clt = ( ( colorman.getColor #background )*255+40 ) as color
 										li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
 										append listVis li
 										) else (
-											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Error: texture file is not set!" )
+											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!" )
 											clt = ( ( colorman.getColor #background )*255+40 ) as color
 											li.backColor=li.backColor.fromARGB clt.r clt.g clt.b
 											append listVis li
@@ -756,7 +817,7 @@ on mlbxMatsAndTexs MouseClick arg do (
 
 		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
 			if (selectionArray[1][1].filename == undefined OR selectionArray[1][1].filename == "") then (
-				edtMat.text = "Error: texture file is not set!"
+				edtMat.text = "Warning: empty bitmap texture!"
 				) else (
 					edtMat.text = selectionArray[1][1].filename
 					)
@@ -835,7 +896,7 @@ fn browseTexFile selectionArray = (
 							edtMat.text = inDir
 							) catch (
 								MessageBox "Please change undefined texture file by file!" title:ProgramName
-								edtMat.text = "Error: texture file is not set!"
+								edtMat.text = "Warning: empty bitmap texture!"
 								exit
 								)
 						
@@ -1083,7 +1144,7 @@ fn searchByName intext = (
 				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
 				join selectionArraySub #(listBG[numSe][3])
 				)
-			try (edtMat.text = getFilenamePath selectionArray[1][1].filename) catch (edtMat.text = "Error: texture file is not set!")
+			try (edtMat.text = getFilenamePath selectionArray[1][1].filename) catch (edtMat.text = "Warning: empty bitmap texture!")
 			return false
 			) else if (NumCount.count > 1 AND superClassOf listBG[NameIndex][1] == Material) then (
 				MessageBox ("Material is \"" + NumCount.count as string + "\" times in use!") title:ProgramName
@@ -1101,7 +1162,7 @@ fn searchByName intext = (
 				join selectionArraySub #(listBG[NameIndex][3])
 
 				if (listBG[NameIndex][3] == "tex") then (
-					try (edtMat.text = listBG[NameIndex][1].filename) catch (edtMat.text = "Error: texture file is not set!")
+					try (edtMat.text = listBG[NameIndex][1].filename) catch (edtMat.text = "Warning: empty bitmap texture!")
 					) else if (superClassOf listBG[NameIndex][1] == Material) then (
 						edtMat.text = listBG[NameIndex][1].name
 						)
