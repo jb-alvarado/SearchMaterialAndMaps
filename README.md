@@ -15,12 +15,12 @@ SearchMaterialsAndTextures
 =========
 
 
-![Search Materials And Maps](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps1.png "SearchMaterialsAndMaps")
+![Search Materials And Maps](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps.png "SearchMaterialsAndMaps")
 
 
 The Script is now also dockable and it have a rigith click menu:
 
-![Search Materials And Maps Dock](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps-dock1.png "SearchMaterialsAndMapsDock")
+![Search Materials And Maps Dock](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps-dock.png "SearchMaterialsAndMapsDock")
 
 
 Download
