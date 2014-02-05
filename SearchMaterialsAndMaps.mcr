@@ -318,7 +318,7 @@ fn matlists mtl = (
 			local blendMat = #()
 
 			if (mtl.map1 != undefined ) do (
-				if ( findItem checkType ( classof mtl.map1 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.map1 ) > 0 ) then (
 						matlists mtl.map1
 						) else (
 							join colMats  #( colMatsS = #( mtl.map1 ) )
@@ -329,7 +329,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.map2 != undefined ) do (
-				if ( findItem checkType ( classof mtl.map2 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.map2 ) > 0 ) then (
 						matlists mtl.map2
 						) else (
 							join colMats  #( colMatsS = #( mtl.map2 ) )
@@ -349,7 +349,7 @@ fn matlists mtl = (
 			join colMatsS #( "mat" )
 
 			if ( mtl.shellacMtl1 != undefined ) do (
-				if ( findItem checkType ( classof mtl.shellacMtl1 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.shellacMtl1 ) > 0 ) then (
 						matlists mtl.shellacMtl1
 						) else (
 							join colMats  #( colMatsS = #( mtl.shellacMtl1 ) )
@@ -360,7 +360,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.shellacMtl2 != undefined ) do (
-				if ( findItem checkType ( classof mtl.shellacMtl2 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.shellacMtl2 ) > 0 ) then (
 						matlists mtl.shellacMtl2
 						) else (
 							join colMats  #( colMatsS = #( mtl.shellacMtl2 ) )
@@ -380,7 +380,7 @@ fn matlists mtl = (
 			join colMatsS #( "mat" )
 
 			if ( mtl.topMaterial != undefined ) do (
-				if ( findItem checkType ( classof mtl.topMaterial ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.topMaterial ) > 0 ) then (
 						matlists mtl.topMaterial
 						) else (
 							join colMats  #( colMatsS = #( mtl.topMaterial ) )
@@ -391,7 +391,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.bottomMaterial != undefined ) do (
-				if ( findItem checkType ( classof mtl.bottomMaterial ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.bottomMaterial ) > 0 ) then (
 						matlists mtl.bottomMaterial
 						) else (
 							join colMats  #( colMatsS = #( mtl.bottomMaterial ) )
@@ -411,7 +411,7 @@ fn matlists mtl = (
 			join colMatsS #( "mat" )
 
 			if ( mtl.material1 != undefined ) do (
-				if ( findItem checkType ( classof mtl.material1 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.material1 ) > 0 ) then (
 						matlists mtl.material1
 						) else (
 							join colMats  #( colMatsS = #( mtl.material1 ) )
@@ -422,7 +422,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.material2 != undefined ) do (
-				if ( findItem checkType ( classof mtl.material2 ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.material2 ) > 0 ) then (
 						matlists mtl.material2
 						) else (
 							join colMats  #( colMatsS = #( mtl.material2 ) )
@@ -442,7 +442,7 @@ fn matlists mtl = (
 			join colMatsS #( "mat" )
 
 			if ( mtl.frontMtl != undefined ) do (
-				if ( findItem checkType ( classof mtl.frontMtl ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.frontMtl ) > 0 ) then (
 						matlists mtl.frontMtl
 						) else (
 							join colMats  #( colMatsS = #( mtl.frontMtl ) )
@@ -453,7 +453,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.backMtl != undefined ) do (
-				if ( findItem checkType ( classof mtl.backMtl ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.backMtl ) > 0 ) then (
 						matlists mtl.backMtl
 						) else (
 							join colMats  #( colMatsS = #( mtl.backMtl ) )
@@ -476,7 +476,7 @@ fn matlists mtl = (
 			join colMatsS #( "mat" )
 
 			if ( mtl.originalMaterial != undefined ) do (
-				if ( findItem checkType ( classof mtl.originalMaterial ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.originalMaterial ) > 0 ) then (
 						matlists mtl.originalMaterial
 						) else (
 							join colMats  #( colMatsS = #(mtl.originalMaterial ) )
@@ -487,7 +487,7 @@ fn matlists mtl = (
 							)
 				)
 			if ( mtl.bakedMaterial != undefined ) do (
-				if ( findItem checkType ( classof mtl.bakedMaterial ) == 1 ) then (
+				if ( findItem checkType ( classof mtl.bakedMaterial ) > 0 ) then (
 						matlists mtl.bakedMaterial
 						) else (
 							join colMats  #( colMatsS = #(mtl.bakedMaterial ) )
@@ -509,7 +509,8 @@ fn matlists mtl = (
 			local m
 			for m = 1 to mtl.numsubs do (
 				if ( mtl[m] != undefined ) do (
-					if ( findItem checkType ( classof mtl[m] ) == 1 ) then (
+					if ( findItem checkType ( classof mtl[m] ) > 0 ) then (
+						
 						matlists mtl[m]
 						) else (
 							join colMats  #( colMatsS = #(mtl[m] ) )
@@ -532,7 +533,7 @@ fn matlists mtl = (
 			local c
 			for c = 1 to mtl.materialList.count do (
 				if ( mtl.materialList[c] != undefined ) do (
-					if ( findItem checkType ( classof mtl.materialList[c] ) == 1 ) then (
+					if ( findItem checkType ( classof mtl.materialList[c] ) > 0 ) then (
 						matlists mtl.materialList[c]
 						) else (
 							join colMats  #( colMatsS = #( mtl.materialList[c] ) )
