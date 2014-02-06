@@ -1344,7 +1344,6 @@ fn searchByName intext = (
 --text field
 -------------------------------------		
 on edtBox entered input do (
-	edtBox.text = input
 	searchByName input
 	)
 
