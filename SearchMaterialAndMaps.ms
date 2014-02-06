@@ -1,7 +1,7 @@
 /*
 ----------------------------------------------------------------------------------------------------------------------
 ::
-::    Description: This MaxScript is for collecting materials and texture, searching by name, 
+::    Description: This MaxScript is for collecting materials, maps and texture, searching by name, 
 ::	   	   modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@
 	global mapFiles= #()
 	
 -------------------------------------------------------------------
---Search texture by name function
+--Search map by name function
 -------------------------------------------------------------------
 
 fn GetMaps mapName = (	

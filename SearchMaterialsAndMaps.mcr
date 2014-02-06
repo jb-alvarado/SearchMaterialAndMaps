@@ -1,7 +1,7 @@
 /*
 ----------------------------------------------------------------------------------------------------------------------
 ::
-::    Description: This MaxScript is for collecting materials and texture, searching by name, 
+::    Description: This MaxScript is for collecting materials, maps and texture, searching by name, 
 ::	   	   modify the texture path and copy the selection in the material editor.
 ::
 ----------------------------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@
 :: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
 :: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons (Jonathan Baecker)
 :: 2014-02-05: fix fillup map array and add vray2side material (Jonathan Baecker)
+:: 2014-02-06: add more map types (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ local SearchMaterialsAndTextures
 	global mapFiles= #()
 	
 -------------------------------------------------------------------
---Search texture by name function
+--Search map by name function
 -------------------------------------------------------------------
 
 fn GetMaps mapName = (	
