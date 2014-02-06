@@ -40,6 +40,7 @@
 :: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
 :: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons (Jonathan Baecker)
 :: 2014-02-05: fix fillup map array and add vray2side material (Jonathan Baecker)
+:: 2014-02-06: add more map types (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -51,6 +52,7 @@
 --
 ----------------------------------------------------------------------------------------------------------------------
 */
+
 (
 	global colMats = #()
 	global colMatsSub = #()
@@ -60,20 +62,13 @@
 --Search texture by name function
 -------------------------------------------------------------------
 
-fn GetMaps mapName = (
-	case classof mapName of (			
-		compositeTextureMap: (
-			join mapFiles #( mapName )
-			
-			for b = 1 to mapName.maplist.count do (
-				if classof mapName.maplist[b] != Bitmaptexture then (
-					GetMaps mapName.maplist[b]
-					) else (
-						join mapFiles #( mapName.maplist[b] )
-						)
-				)
-			)
+fn GetMaps mapName = (	
+	case classof mapName of (
 		
+		bitmaptexture: (
+			join mapFiles #( mapName )
+			)
+
 		cellular: (
 			join mapFiles #( mapName )
 			
@@ -99,82 +94,6 @@ fn GetMaps mapName = (
 						)
 				)
 			)
-			
-		mix: (
-			join mapFiles #( mapName )
-			
-			if mapName.map1 != undefined do (
-				if classof mapName.map1 != Bitmaptexture then (
-					GetMaps mapName.map1
-					) else (
-						join mapFiles #( mapName.map1 )
-						)
-				)
-			if mapName.map2 != undefined do (
-				if classof mapName.map2 != Bitmaptexture then (
-					GetMaps mapName.map2
-					) else (
-						join mapFiles #( mapName.map2 )
-						)
-				)	
-			)
-			
-		noise: (
-			join mapFiles #( mapName )
-			
-			if mapName.map1 != undefined do (
-				if classof mapName.map1 != Bitmaptexture then (
-					GetMaps mapName.map1
-					) else (
-						join mapFiles #( mapName.map1 )
-						)
-				)
-			if mapName.map2 != undefined do (
-				if classof mapName.map2 != Bitmaptexture then (
-					GetMaps mapName.map2
-					) else (
-						join mapFiles #( mapName.map2 )
-						)
-				)	
-			)	
-			
-		Smoke: (
-			join mapFiles #( mapName )
-			
-			if mapName.map1 != undefined do (
-				if classof mapName.map1 != Bitmaptexture then (
-					GetMaps mapName.map1
-					) else (
-						join mapFiles #( mapName.map1 )
-						)
-				)
-			if mapName.map2 != undefined do (
-				if classof mapName.map2 != Bitmaptexture then (
-					GetMaps mapName.map2
-					) else (
-						join mapFiles #( mapName.map2 )
-						)
-				)	
-			)
-			
-		Speckle: (
-			join mapFiles #( mapName )
-			
-			if mapName.map1 != undefined do (
-				if classof mapName.map1 != Bitmaptexture then (
-					GetMaps mapName.map1
-					) else (
-						join mapFiles #( mapName.map1 )
-						)
-				)
-			if mapName.map2 != undefined do (
-				if classof mapName.map2 != Bitmaptexture then (
-					GetMaps mapName.map2
-					) else (
-						join mapFiles #( mapName.map2 )
-						)
-				)	
-			)
 		
 		Checker: (
 			join mapFiles #( mapName )
@@ -194,7 +113,7 @@ fn GetMaps mapName = (
 						)
 				)	
 			)
-		
+				
 		ColorCorrection: (
 			join mapFiles #( mapName )
 			
@@ -206,7 +125,38 @@ fn GetMaps mapName = (
 						)
 				)	
 			)
+			
+		compositeTextureMap: (
+			join mapFiles #( mapName )
+			
+			for b = 1 to mapName.maplist.count do (
+				if classof mapName.maplist[b] != Bitmaptexture then (
+					GetMaps mapName.maplist[b]
+					) else (
+						join mapFiles #( mapName.maplist[b] )
+						)
+				)
+			)
 		
+		dent: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)	
+	
 		Falloff: (
 			join mapFiles #( mapName )
 			
@@ -251,12 +201,229 @@ fn GetMaps mapName = (
 						join mapFiles #( mapName.map3 )
 						)
 				)
-			)			
-			
-		bitmaptexture: (
+			)
+
+		mask: (
 			join mapFiles #( mapName )
+			
+			if mapName.map != undefined do (
+				if classof mapName.map != Bitmaptexture then (
+					GetMaps mapName.map
+					) else (
+						join mapFiles #( mapName.map )
+						)
+				)
+			if mapName.mask != undefined do (
+				if classof mapName.mask != Bitmaptexture then (
+					GetMaps mapName.mask
+					) else (
+						join mapFiles #( mapName.mask )
+						)
+				)	
+			)	
+			
+		mix: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
 			)
 			
+		noise: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
+		Normal_Bump: (
+			join mapFiles #( mapName )
+			
+			if mapName.normal_map != undefined do (
+				if classof mapName.normal_map != Bitmaptexture then (
+					GetMaps mapName.normal_map
+					) else (
+						join mapFiles #( mapName.normal_map )
+						)
+				)
+			if mapName.bump_map != undefined do (
+				if classof mapName.bump_map != Bitmaptexture then (
+					GetMaps mapName.bump_map
+					) else (
+						join mapFiles #( mapName.bump_map )
+						)
+				)	
+			)
+			
+		output: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			)
+			
+		perlinMarble: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)	
+		
+		rgbMult: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
+		Smoke: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
+		Speckle: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
+		Splat: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)
+			
+		Stucco: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)	
+			
+		Stucco: (
+			join mapFiles #( mapName )
+			
+			if mapName.map1 != undefined do (
+				if classof mapName.map1 != Bitmaptexture then (
+					GetMaps mapName.map1
+					) else (
+						join mapFiles #( mapName.map1 )
+						)
+				)
+			if mapName.map2 != undefined do (
+				if classof mapName.map2 != Bitmaptexture then (
+					GetMaps mapName.map2
+					) else (
+						join mapFiles #( mapName.map2 )
+						)
+				)	
+			)	
+
 		default: (
 			join mapFiles #( mapName )
 			)
