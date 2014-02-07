@@ -973,7 +973,7 @@ on mlbxMatsAndTexs MouseClick arg do (
 		it = mlbxMatsAndTexs.selectedIndices.item[k] + 1
 		join selectionArray  #(selectionArraySub = #(listBG[it][1]))
 		join selectionArraySub #(listBG[it][3])
-		join selectionNums #(it)
+		join selectionNums #(it - 1)
 		)
 
 		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
@@ -989,6 +989,7 @@ on mlbxMatsAndTexs MouseClick arg do (
 						if (selectionArray[t][2] == "tex") then (
 							if (selectionArray[t][1].filename == undefined OR selectionArray[t][1].filename == "") then (
 								messagebox "Texture file is not set, please correct this first!" title:ProgramName
+								deleteItem selectionArray t
 								
 								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
 								mlbxMatsAndTexs.HideSelection = false
@@ -998,15 +999,17 @@ on mlbxMatsAndTexs MouseClick arg do (
 									) else (
 										messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 										)
-							) else if (selectionArray[t][2] == "map" ) then (
+							) else if (selectionArray[t][2] != "map" OR selectionArray[t][2] == "sub" ) then (
 								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
+								deleteItem selectionArray t
+								edtMat.text = selectionArray[1][1].name
 
 								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
 								mlbxMatsAndTexs.HideSelection = false 
 								exit
 								)
 						)
-					)
+					)			
 	)
 
 -----------------------------------------------
@@ -1183,7 +1186,7 @@ struct lv_context_menu (
 -------------------------------------
 on mlbxMatsAndTexs mouseUp sender args do (
 	mlbxMatsAndTexs.ContextMenu = ()
-
+	
 	if selectionArray[1][2] == "tex" then (
 		cm = lv_context_menu()
 		mlbxMatsAndTexs.ContextMenu = cm.getmenu()
