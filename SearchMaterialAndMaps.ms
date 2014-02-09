@@ -1005,7 +1005,7 @@ on mlbxMatsAndTexs MouseClick arg do (
 									) else (
 										messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 										)
-							) else if ( selectionArray[t][2] != "map" OR selectionArray[t][2] == "sub" ) then (
+							) else if ( selectionArray[t][2] != "tex" ) then (
 								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 								deleteItem selectionArray t
 								edtMat.text = selectionArray[1][1].name
