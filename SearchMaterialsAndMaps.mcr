@@ -29,7 +29,7 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 1.0 from 2013-06-09. Last bigger modification was on 2014-02-04
+:: This is version 1.2 from 2013-06-09. Last bigger modification was on 2014-02-09
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
 :: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
@@ -41,6 +41,9 @@
 :: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons (Jonathan Baecker)
 :: 2014-02-05: fix fillup map array and add vray2side material (Jonathan Baecker)
 :: 2014-02-06: add more map types (Jonathan Baecker)
+:: 2014-02-07: fix right click menu, remove unused subarray and little fixes (Jonathan Baecker)
+:: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
+:: 2014-02-09: makeup code, fix usability and bugs (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -729,7 +732,7 @@ fn matlists mtl = (
 
 try ( destroyDialog SearchMaterialAndMaps ) catch ( )	
 
-rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
+rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	
 		local ProgramName = "Search Material and Maps"
 		local listVis = #()
@@ -738,42 +741,39 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 		local selectionNums = #()
 		local edtBoxText = ""
 
-	groupBox grpProgress "Progress:" pos:[10,10] width:320 height:60
-		label lblProgress "" pos:[20,30] width:200 height:16
-		progressBar prgProgress "" pos:[20,49] width:235 height:12 color:[0,200,0]
+	groupBox grpSeMyTex "Collection From All Materials And Maps:" pos:[10,8] width:320 height:502
+		editText edtMat "" pos:[16,26] width:240 readOnly:true
+		button btnChangeTex "Browse" pos:[260,26] width:60 height:18
+		dotNetControl mlbxMatsAndTexs "system.windows.forms.listView" pos:[20,47] width:300 height:413
+		checkBox chkMat "Show Materials" pos:[20,467] checked:true
+		checkBox chkSub "Show Submaterials" pos:[115,467] checked:true
+		checkBox chkMap "Show Maps" pos:[230,467] checked:true
+		checkBox chkTex "Show Textures" pos:[20,487] checked:true
+		checkBox chkmissing "Missing Texture" pos:[115,487] checked:false
+		checkBox chkSelObj "From Selection" pos:[230,487] checked:false
 
-	groupBox grpSeMyTex "Collection From All Materials And Maps:" pos:[10,75] width:320 height:515
-		button btnSeMatAndTex "Collect Materials And Maps" pos:[20,95] width:160 height:20
-		editText edtMat "" pos:[16,122] width:240 readOnly:true
-		button btnChangeTex "Browse" pos:[260,122] width:60 height:18
-		dotNetControl mlbxMatsAndTexs "system.windows.forms.listView" pos:[20,145] width:300 height:395
-		checkBox chkMat "Show Materials" pos:[20,547] checked:true
-		checkBox chkSub "Show Submaterials" pos:[115,547] checked:true
-		checkBox chkMap "Show Maps" pos:[230,547] checked:true
-		checkBox chkTex "Show Textures" pos:[20,567] checked:true
-		checkBox chkmissing "Missing Texture" pos:[115,567] checked:false
-		checkBox chkSelObj "From Selection" pos:[230,567] checked:false
-
-	groupBox grpSeByName "Search Material And Maps By Name:" pos:[10,595] width:320 height:45
-		editText edtBox text:"" pos:[16,613] width:244
-		button btnSeMat "Search" pos:[270,613] width:50 height:20
+	groupBox grpSeByName "Search Material And Maps By Name:" pos:[10,515] width:320 height:45
+		editText edtBox text:"" pos:[16,533] width:244
+		button btnSeMat "Search" pos:[270,533] width:50 height:20
 
 	-----------------------------------------------
 	--resize statment
 	-----------------------------------------------
 	on SearchMaterialAndMaps resized newSize do (
 
-		grpProgress.width=newSize[1]-20
-
 		grpSeMyTex.width=newSize[1]-20
-		grpSeMyTex.height=newSize[2]-135
+		grpSeMyTex.height=newSize[2]-68
 			edtMat.width=newSize[1]-105
-			btnChangeTex.pos=[newSize[1]-80,122] 
+			btnChangeTex.pos=[newSize[1]-80,26] 
 			mlbxMatsAndTexs.width=newSize[1]-40
-			mlbxMatsAndTexs.height=newSize[2]-254
-		
-			try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64) catch ()
-		
+			mlbxMatsAndTexs.height=newSize[2]-157
+
+			if colMats.count < 25 then (  
+				try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-46) catch ()
+				) else (
+					try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64) catch ()
+					)
+					
 			chkMat.pos=[20,newSize[2]-103]
 			chkSub.pos=[newSize[1]/2-55,newSize[2]-103]
 			chkMap.pos=[newSize[1]-110,newSize[2]-103]
@@ -787,21 +787,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 			edtBox.pos=[20,newSize[2]-37]
 			btnSeMat.pos=[newSize[1]-70,newSize[2]-37]
 		)
-
-	on SearchMaterialAndMaps open do (
-		--Setup the forms view
-		mlbxMatsAndTexs.HeaderStyle = none
-		mlbxMatsAndTexs.columns.add "Material and Texture List" 278
-		mlbxMatsAndTexs.view=(dotNetClass "system.windows.forms.view").details
-		mlbxMatsAndTexs.FullRowSelect=true
-		mlbxMatsAndTexs.GridLines=false
-		mlbxMatsAndTexs.MultiSelect=true
-		mlbxMatsAndTexs.allowdrop = true
-		cb = ((colorman.getColor #background)*255+20) as color
-		mlbxMatsAndTexs.BackColor = (dotNetClass "System.Drawing.Color").fromARGB cb.r cb.g cb.b
-		cf = ((colorman.getColor #text)*255+30) as color
-		mlbxMatsAndTexs.ForeColor = (dotNetClass "System.Drawing.Color").fromARGB cf.r cf.g cf.b
-	)
 
 -----------------------------------------------
 --Progress, fill material and texture array
@@ -817,8 +802,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 		listVis = #()
 		listBG = #()
 		listBGType = #()
-		
-	--	if (mlbxMatsAndTexs.columns.count == 0 AND chkMat.checked == true) do (mlbxMatsAndTexs.columns.add "Material and Texture List" 339)
 
 		if ( materials.count == 0 ) do (
 			MessageBox "There are no materials in your current scene!" title:ProgramName
@@ -839,17 +822,13 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 		qsort tmpArray sortByXMember x:2
 			
 		for i = 1 to tmpArray.count do (
-			lblProgress.caption = ( "Material: " + tmpArray[i][1].name )
 			matlists tmpArray[i][1]
-			prgProgress.value = 100.000 / tmpArray.count * i
 			stampID = timeStamp()
-			if (((stampID - startID) / 1000.0) >= 5.00) do (
+			if ( ( ( stampID - startID ) / 1000.0 ) >= 5.00 ) do (
 				startID = timeStamp()
 				windows.processPostedMessages()
 				)
 			)
-		lblProgress.caption = ("Done...")
-		prgProgress.value = 100
 		
 		--get names from materials and textures
 		for m = 1 to colMats.count do (
@@ -863,7 +842,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 				join listBGType #( colMats[m][2] )
 				join listBGType #( colMats[m][3] )
 				) else if ( chkSub.checked == true AND colMats[m][3] == "sub" ) then (
-					li=dotNetObject "System.Windows.Forms.ListViewItem" ("   " + colMats[m][2])
+					li=dotNetObject "System.Windows.Forms.ListViewItem" ( "   " + colMats[m][2] )
 					cls = ( ( colorman.getColor #background )*255+20 ) as color
 					li.backColor=li.backColor.fromARGB ( cls.r + 10 ) ( cls.g + 10 ) cls.b
 					append listVis li
@@ -872,7 +851,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 					join listBGType #( colMats[m][2] )
 					join listBGType #( colMats[m][3] )
 					) else if ( chkMap.checked == true AND colMats[m][3] == "map" ) then (
-						li=dotNetObject "System.Windows.Forms.ListViewItem" ("      " + colMats[m][2])
+						li=dotNetObject "System.Windows.Forms.ListViewItem" ( "      " + colMats[m][2] )
 						cls = ( ( colorman.getColor #background )*255+30 ) as color
 						li.backColor=li.backColor.fromARGB cls.r cls.g ( cls.b + 10 )
 						append listVis li
@@ -881,7 +860,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 						join listBGType #( colMats[m][2] )
 						join listBGType #( colMats[m][3] )
 						) else if ( chkTex.checked == true AND colMats[m][3] == "tex" ) then (								
-							li=dotNetObject "System.Windows.Forms.ListViewItem" ("           " + colMats[m][2])
+							li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + colMats[m][2] )
 							clt = ( ( colorman.getColor #background )*255+40 ) as color
 							li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
 							append listVis li
@@ -925,22 +904,23 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 								)
 			)
 			
-			--fill the listBox mlbxMatsAndTexs box 
+			if listVis.count < 25 do mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
+			--fill the listBox mlbxMatsAndTexs box
 			mlbxMatsAndTexs.items.addRange listVis
 
 			--sort array when only textures selected
-			if (chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing == true) then (
+			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing == true ) then (
 				fn sortByXMember listBG1 listBG2 x:2 = (
 					case of (
-						(listBG1[x] < listBG2[x]):-1
-						(listBG1[x] > listBG2[x]):1
+						( listBG1[x] < listBG2[x] ):-1
+						( listBG1[x] > listBG2[x] ):1
 						default:0
 						)
 					)
 					qsort listBG sortByXMember x:2
 					local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
-				) else if (chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing == false AND chkTex.checked == true) then (
+				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing == false AND chkTex.checked == true ) then (
 					fn sortByXMember listBG1 listBG2 x:2 = (
 						case of (
 							(listBG1[x] < listBG2[x]):-1
@@ -954,16 +934,21 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:650 (
 					)
 		)
 		
--------------------------------------
---collecting material list
--------------------------------------
-on btnSeMatAndTex pressed do (
-	if (chkSelObj.checked == true) then (
-		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
-		) else (
-			doMaterialList sceneMaterials
-			)
+		
+on SearchMaterialAndMaps open do (
+	--Setup the forms view
+	mlbxMatsAndTexs.HeaderStyle = none
+	mlbxMatsAndTexs.columns.add "Material and Texture List" 278
+	mlbxMatsAndTexs.view = ( dotNetClass "system.windows.forms.view" ).details
+	mlbxMatsAndTexs.FullRowSelect = true
+	mlbxMatsAndTexs.GridLines = false
+	mlbxMatsAndTexs.MultiSelect = true
+	--mlbxMatsAndTexs.allowdrop = true
+	cb = ( ( colorman.getColor #background )*255+20) as color
+	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cb.r cb.g cb.b
+	cf = ( ( colorman.getColor #text )*255+30 ) as color
+	mlbxMatsAndTexs.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
+	doMaterialList sceneMaterials
 	)
 
 -------------------------------------
@@ -976,23 +961,23 @@ on mlbxMatsAndTexs MouseClick arg do (
 	
 	for k = 0 to mlbxMatsAndTexs.selectedIndices.count-1 do (
 		it = mlbxMatsAndTexs.selectedIndices.item[k] + 1
-		join selectionArray  #(selectionArraySub = #(listBG[it][1]))
-		join selectionArraySub #(listBG[it][3])
-		join selectionNums #(it - 1)
+		join selectionArray  #( selectionArraySub = #( listBG[it][1] ) )
+		join selectionArraySub #( listBG[it][3] )
+		join selectionNums #( it - 1 )
 		)
 
-		if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
-			if (selectionArray[1][1].filename == undefined OR selectionArray[1][1].filename == "") then (
+		if ( selectionArray.count == 1 AND selectionArray[1][2] == "tex" ) then (
+			if ( selectionArray[1][1].filename == undefined OR selectionArray[1][1].filename == "" ) then (
 				edtMat.text = "Warning: empty bitmap texture!"
 				) else (
 					edtMat.text = selectionArray[1][1].filename
 					)
-			) else if (selectionArray.count == 1 AND selectionArray[1][2] != "tex") then (
+			) else if ( selectionArray.count == 1 AND selectionArray[1][2] != "tex" ) then (
 				edtMat.text = selectionArray[1][1].name
-				) else if (selectionArray.count > 1) then (
+				) else if ( selectionArray.count > 1 ) then (
 					for t = 1 to selectionArray.count do (
-						if (selectionArray[t][2] == "tex") then (
-							if (selectionArray[t][1].filename == undefined OR selectionArray[t][1].filename == "") then (
+						if ( selectionArray[t][2] == "tex" ) then (
+							if ( selectionArray[t][1].filename == undefined OR selectionArray[t][1].filename == "" ) then (
 								messagebox "Texture file is not set, please correct this first!" title:ProgramName
 								deleteItem selectionArray t
 								
@@ -1004,7 +989,7 @@ on mlbxMatsAndTexs MouseClick arg do (
 									) else (
 										messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 										)
-							) else if (selectionArray[t][2] != "map" OR selectionArray[t][2] == "sub" ) then (
+							) else if ( selectionArray[t][2] != "map" OR selectionArray[t][2] == "sub" ) then (
 								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
 								deleteItem selectionArray t
 								edtMat.text = selectionArray[1][1].name
@@ -1021,18 +1006,19 @@ on mlbxMatsAndTexs MouseClick arg do (
 --browse texture
 -----------------------------------------------	
 fn browseTexFile selectionArray = (
-	if (selectionArray.count == 0) do (
-		MessageBox "Please collect materials and maps and select a texture map first!" title:ProgramName
+	if ( selectionArray.count == 0 ) do (
+		MessageBox "Please select a texture map first!" title:ProgramName
 		return false
 		)
 		
-	if (selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material) then (
+	if ( selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material ) then (
 		MessageBox "Please select a texture map..." title:ProgramName
 		return false
-		) else if (selectionArray.count == 1 AND selectionArray[1][2] == "tex") then (
-			try (filepath = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
+		) else if ( selectionArray.count == 1 AND selectionArray[1][2] == "tex" ) then (
+			try ( 
+				filepath = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
 				) catch (
-					filepath = (getDir #renderPresets + @"\")
+					filepath = ( getDir #renderPresets + @"\" )
 					)
 			inputFile = getOpenFileName \
 			caption:"Select Bitmap Image File" \
@@ -1044,7 +1030,7 @@ fn browseTexFile selectionArray = (
 				|RPF (*.rpf)|*.rpf|Targa Image File (*.tga)|*.tga|Tif Image File (*.tif,*.tif)|*.tif;*.tiff|YUV Image File (*.yuv)|*.yuv|DDS Image File (*.dds)|*.dds|" \
 			historyCategory:"Textures"
 
-			if (inputFile != undefined) do (
+			if ( inputFile != undefined ) do (
 				selectionArray[1][1].filename = inputFile
 				edtMat.text = inputFile
 				)
@@ -1057,9 +1043,10 @@ fn browseTexFile selectionArray = (
 						)
 					
 				if folder != undefined do (
-					inDir = getFilenamePath (folder + "/")
+					inDir = getFilenamePath ( folder + "/" )
 					for y = 1 to selectionArray.count do (
-						try (selectionArray[y][1].filename = (inDir + filenameFromPath selectionArray[y][1].filename)
+						try ( 
+							selectionArray[y][1].filename = ( inDir + filenameFromPath selectionArray[y][1].filename )
 							edtMat.text = inDir
 							) catch (
 								MessageBox "Please change undefined texture file by file!" title:ProgramName
@@ -1073,9 +1060,9 @@ fn browseTexFile selectionArray = (
 					MessageBox "Please select a texture map..." title:ProgramName
 					)
 
-		if (chkSelObj.checked == true) then (
+		if ( chkSelObj.checked == true ) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-			doMaterialList (makeUniqueArray SelObjMats)
+			doMaterialList ( makeUniqueArray SelObjMats )
 			) else (
 				doMaterialList sceneMaterials
 				)
@@ -1090,83 +1077,81 @@ struct lv_context_menu (
 		),
 	fn null = (),
 	fn CopyToMaterialEditor sender arg = (	
-		if (selectionArray.count == 0) then (
-		MessageBox "Please collect, or search, and select something first!" title:ProgramName
-		) else if (selectionArray.count == 1) then (
 			local meditMatch = 0
 			local i
 
 			for i = 1 to meditMaterials.count do (
-				if (matchPattern (meditMaterials [i].name) pattern:selectionArray[1][1].name) do (
+				if ( matchPattern ( meditMaterials [i].name ) pattern:selectionArray[1][1].name ) do (
 					activeMeditSlot = i
-					MessageBox ("Material or Textures is already in Material Editor! SLOT: " + (i as string)) title:ProgramName
+					MessageBox ( "Material or Textures is already in Material Editor! SLOT: " + ( i as string ) ) title:ProgramName
 					meditMatch = 1
 					) 
 				)
-			if (meditMatch == 0) do (
+			if ( meditMatch == 0 ) do (
 				setMeditMaterial sender.tag selectionArray[1][1]
-				)	
-			) else (
-				MessageBox "Please select only one item!" title:ProgramName
 				)
 		),
 	fn SelectObjectsByMaterial = (
-		if (selectionArray.count == 1) then (
-			if (selectionArray[1][2] == "mat") then (
-				objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj
-					
-				-- Check if the obj is part of a group
-				for obj in objArray where isGroupMember obj AND (NOT isOpenGroupMember obj) do (
-					par = obj.parent
-					while par != undefined do (
-						if isGroupHead par then (
-							setGroupOpen par true
-							par = undefined
-							) else (
-								par = par.parent
-								)
+		objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj
+			
+		-- Check if the obj is part of a group
+		for obj in objArray where isGroupMember obj AND ( NOT isOpenGroupMember obj ) do (
+			par = obj.parent
+			while par != undefined do (
+				if isGroupHead par then (
+					setGroupOpen par true
+					par = undefined
+					) else (
+						par = par.parent
 						)
-					)
-					select objArray
-					
-					for o in objArray where not(o.layer.on) do o.layer.on = true
-					for o in objArray where o.layer.isFrozen do o.layer.isFrozen = false
-					for o in objArray where o.isHidden do o.isHidden = false
-					for o in objArray where o.isFrozen do o.isFrozen = false
-					select objArray
-					
-				) else if (selectionArray[1][2] == "tex") then (
-					messagebox "Please select a material! Your corrent selection is a texture..." title:ProgramName
-					) else if (selectionArray[1][2] == "sub") then (
-						messagebox "Please select a material! Your corrent selection is a subMaterial..." title:ProgramName
-						) else (
-							messagebox "Please select a material! Your corrent selection is a map..." title:ProgramName
-							)
-			) else if (selectionArray.count == 0) then (
-				messagebox "No material selected..." title:ProgramName
-				) else (
-					messagebox "Please select a material!" title:ProgramName
-					)
+				)
+			)
+			select objArray
+			
+			for o in objArray where not( o.layer.on ) do o.layer.on = true
+			for o in objArray where o.layer.isFrozen do o.layer.isFrozen = false
+			for o in objArray where o.isHidden do o.isHidden = false
+			for o in objArray where o.isFrozen do o.isFrozen = false
+			select objArray
 		),
 	fn RefreshList = (
-		doMaterialList sceneMaterials
+		if ( chkSelObj.checked == true ) then (
+			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+			doMaterialList ( makeUniqueArray SelObjMats )
+			) else (
+				doMaterialList sceneMaterials
+				)
 		),
 	fn OpenInExplorer = (
-		if selectionArray.count == 1 AND selectionArray[1][2] == "tex" then (
-			ShellLaunch "explorer.exe" ( getFilenamePath selectionArray[1][1].filename )
+		if selectionArray.count == 1 then (
+			ShellLaunch "explorer.exe" ( "/e,/select," + ( getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename ) )
 			) else (
-				MessageBox "Please select one texture map..." title:ProgramName
+				ShellLaunch "explorer.exe" ( getFilenamePath selectionArray[1][1].filename )
 				)
 		),
 	names = #( "&Edit Path","-", "&Copy To Material Editor", "&Select Objects By Material", "-", "&Refresh List", "&Open Path" ), --Asign To Object; Search Material from Selected Object
 	eventHandlers = #( EditPath, null, CopyToMaterialEditor, SelectObjectsByMaterial, null, RefreshList, OpenInExplorer ),
 	events = #( "Click", "Click", "Click", "Click", "Click", "Click", "Click" ),
 	
-	fn GetMenu = (
+	fn GetMenu type= (
 		cm = ( dotNetObject "System.Windows.Forms.ContextMenu" )
 		for i = 1 to names.count do (
 			mi = cm.MenuItems.Add names[i]
 			
+			if type != "tex" do (
+				if names[i] == "&Edit Path" OR names[i] == "&Open Path" do (
+					mi.enabled = off
+					)
+				)
+				
+			if type != "mat" AND names[i] == "&Select Objects By Material" do (
+				mi.enabled = off
+				)
+				
+			if type == "null" AND names[i] != "&Refresh List" do (
+				mi.enabled = off
+				)				
+				
 			if names[i] == "&Copy To Material Editor" do (
 				for m = 1 to meditmaterials.count do (
 					if m < 10 then (
@@ -1185,19 +1170,26 @@ struct lv_context_menu (
 		cm
 		)
 	)
-	
+
 -------------------------------------
 --mouseclick
 -------------------------------------
 on mlbxMatsAndTexs mouseUp sender args do (
 	mlbxMatsAndTexs.ContextMenu = ()
-	
-	if selectionArray[1][2] == "tex" then (
-		cm = lv_context_menu()
-		mlbxMatsAndTexs.ContextMenu = cm.getmenu()
-		) else if selectionArray.count == 1 AND selectionArray[1][2] != "tex" then (
+
+	hit=( mlbxMatsAndTexs.HitTest ( dotNetObject "System.Drawing.Point" args.x args.y ) )
+			
+	if hit.item != undefined then (
+		if selectionArray[1][2] == "tex" then (
 			cm = lv_context_menu()
-			mlbxMatsAndTexs.ContextMenu = cm.getmenu()
+			mlbxMatsAndTexs.ContextMenu = cm.getmenu( selectionArray[1][2] )
+			) else if selectionArray.count == 1 AND selectionArray[1][2] != "tex" then (
+				cm = lv_context_menu()
+				mlbxMatsAndTexs.ContextMenu = cm.getmenu( selectionArray[1][2] )
+				)
+		) else (
+			cm = lv_context_menu()
+			mlbxMatsAndTexs.ContextMenu = cm.getmenu( "null" )
 			)
 	)
 	
@@ -1212,27 +1204,27 @@ on btnChangeTex pressed do (
 --checkboxen - filter functions
 -------------------------------------
 on chkMat changed theState do (
-	if (chkSelObj.checked == true) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
 	)
 
 on chkSub changed theState do (
-	if (chkSelObj.checked == true) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
 	)	
 
 on chkMap changed theState do (
-	if (chkSelObj.checked == true) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -1240,9 +1232,9 @@ on chkMap changed theState do (
 
 on chkTex changed theState do (
 	chkmissing.checked = false
-	if (chkSelObj.checked == true) then (
+	if ( hkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -1250,18 +1242,18 @@ on chkTex changed theState do (
 
 on chkmissing changed theState do (
 	chkTex.checked = false
-	if (chkSelObj.checked == true) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
 	)
 	
 on chkSelObj changed theState do (
-	if (chkSelObj.checked == true) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-		doMaterialList (makeUniqueArray SelObjMats)
+		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
 			doMaterialList sceneMaterials
 			)
@@ -1273,10 +1265,10 @@ fn searchByName intext = (
 	selectionArray = #()
 	selectionArraySub = #()
 
-	if (edtBox.text != "") then (
-		if (chkSelObj.checked == true) then (
+	if ( edtBox.text != "" ) then (
+		if ( chkSelObj.checked == true ) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
-			doMaterialList (makeUniqueArray SelObjMats)
+			doMaterialList ( makeUniqueArray SelObjMats )
 			) else (
 				doMaterialList sceneMaterials
 				)
@@ -1287,11 +1279,11 @@ fn searchByName intext = (
 		local NumCount = #()
 
 		for f = 1 to listBG.count do (
-			if (listBG[f][1].name == edtBox.text) then (
+			if ( listBG[f][1].name == edtBox.text ) then (
 				NameMatch = listBG[f][1]
 				NameIndex = f
 				join NumCount #(f)
-				) else if (listBG[f][3] == "tex" AND (try (filenameFromPath listBG[f][1].filename) catch (listBG[f][2])) == edtBox.text) then (
+				) else if ( listBG[f][3] == "tex" AND ( try ( filenameFromPath listBG[f][1].filename ) catch ( listBG[f][2] ) ) == edtBox.text ) then (
 					NameMatch = listBG[f][1]
 					NameIndex = f
 					join NumCount #(f)
@@ -1299,8 +1291,8 @@ fn searchByName intext = (
 			)
 
 		--count textures, or materials with the same name
-		if (NumCount.count > 1 AND listBG[NameIndex][3] == "tex") then (
-			MessageBox ("Texture is \"" + NumCount.count as string + "\" times in use...") title:ProgramName
+		if ( NumCount.count > 1 AND listBG[NameIndex][3] == "tex" ) then (
+			MessageBox ( "Texture is \"" + NumCount.count as string + "\" times in use..." ) title:ProgramName
 			for i = 1 to NumCount.count do (
 				mlbxMatsAndTexs.Items.item[NumCount[i]-1].Selected = true
 				mlbxMatsAndTexs.EnsureVisible[NumCount[i]-1]
@@ -1308,29 +1300,29 @@ fn searchByName intext = (
 			mlbxMatsAndTexs.HideSelection = false
 				
 			for numSe in NumCount do (
-				join selectionArray  #(selectionArraySub = #(listBG[numSe][1]))
-				join selectionArraySub #(listBG[numSe][3])
+				join selectionArray  #( selectionArraySub = #( listBG[numSe][1] ) )
+				join selectionArraySub #( listBG[numSe][3] )
 				)
-			try (edtMat.text = getFilenamePath selectionArray[1][1].filename) catch (edtMat.text = "Warning: empty bitmap texture!")
+			try ( edtMat.text = getFilenamePath selectionArray[1][1].filename ) catch ( edtMat.text = "Warning: empty bitmap texture!" )
 			return false
-			) else if (NumCount.count > 1 AND superClassOf listBG[NameIndex][1] == Material) then (
+			) else if ( NumCount.count > 1 AND superClassOf listBG[NameIndex][1] == Material ) then (
 				MessageBox ("Material is \"" + NumCount.count as string + "\" times in use!") title:ProgramName
 				)
 
 		--jump to the searched material or texture
-		if (NameMatch != undefined) then (
+		if ( NameMatch != undefined ) then (
 				for g = 1 to NumCount.count do (
 					mlbxMatsAndTexs.Items.item[NumCount[g]-1].Selected = true
 					mlbxMatsAndTexs.EnsureVisible[NumCount[g]-1]
 					)
 				mlbxMatsAndTexs.HideSelection = false
 			
-				join selectionArray  #(selectionArraySub = #(listBG[NameIndex][1]))
-				join selectionArraySub #(listBG[NameIndex][3])
+				join selectionArray  #( selectionArraySub = #( listBG[NameIndex][1] ) )
+				join selectionArraySub #( listBG[NameIndex][3] )
 
-				if (listBG[NameIndex][3] == "tex") then (
-					try (edtMat.text = listBG[NameIndex][1].filename) catch (edtMat.text = "Warning: empty bitmap texture!")
-					) else if (superClassOf listBG[NameIndex][1] == Material) then (
+				if ( listBG[NameIndex][3] == "tex" ) then (
+					try ( edtMat.text = listBG[NameIndex][1].filename ) catch ( edtMat.text = "Warning: empty bitmap texture!" )
+					) else if ( superClassOf listBG[NameIndex][1] == Material ) then (
 						edtMat.text = listBG[NameIndex][1].name
 						)
 			) else (
@@ -1355,9 +1347,8 @@ on btnSeMat pressed do (
 	
 ) --rollout end
 
-	createDialog SearchMaterialAndMaps style:#(#style_titlebar, #style_border, #style_sysmenu, #style_resizing)
-	cui.RegisterDialogBar SearchMaterialAndMaps minSize:[150, 100] maxSize:[-1, 1200] style:#(#cui_dock_vert, #cui_floatable, #cui_handles)
+	createDialog SearchMaterialAndMaps style:#( #style_titlebar, #style_border, #style_sysmenu, #style_resizing )
+	cui.RegisterDialogBar SearchMaterialAndMaps minSize:[150, 100] maxSize:[-1, 1200] style:#( #cui_dock_vert, #cui_floatable, #cui_handles )
 ) --script end
-
 
 )

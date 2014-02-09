@@ -7,7 +7,7 @@ author: Jonathan Baecker (jb_alvarado)
 
 created:  2013 May 27
 
-modified: 2014 February 07
+modified: 2014 February 09
 
 ---
 
@@ -15,12 +15,12 @@ SearchMaterialsAndTextures
 =========
 
 
-![Search Materials And Maps](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps1.png "SearchMaterialsAndMaps")
+![Search Materials And Maps](http://www.pixelcrusher.de/files/SearchMatsAndMaps.png "SearchMaterialsAndMaps")
 
 
 The Script is now also dockable and it have a rigith click menu:
 
-![Search Materials And Maps Dock](http://www.pixelcrusher.de/files/SearchMaterialsAndMaps-dock1.png "SearchMaterialsAndMapsDock")
+![Search Materials And Maps Dock](http://www.pixelcrusher.de/files/SearchMatsAndMapsDock.png "SearchMaterialsAndMapsDock")
 
 
 Download
@@ -28,7 +28,7 @@ Download
 
 ### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndMaps/archive/master.zip)
 
-Current release is **v1.0**
+Current release is **v1.2**
 
 
 This MaxScript is for collecting materials and maps, searching by name, 
