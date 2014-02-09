@@ -43,7 +43,7 @@
 :: 2014-02-06: add more map types (Jonathan Baecker)
 :: 2014-02-07: fix right click menu, remove unused subarray and little fixes (Jonathan Baecker)
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
-:: 2014-02-09: makeup code, fix usability and bugs (Jonathan Baecker)
+:: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -137,6 +137,13 @@ fn GetMaps mapName = (
 					GetMaps mapName.maplist[b]
 					) else (
 						join mapFiles #( mapName.maplist[b] )
+						)
+				)
+			for c = 1 to mapName.mask.count do (
+				if classof mapName.mask[c] != Bitmaptexture then (
+					GetMaps mapName.mask[c]
+					) else (
+						join mapFiles #( mapName.mask[c] )
 						)
 				)
 			)
@@ -428,7 +435,22 @@ fn GetMaps mapName = (
 			)	
 
 		default: (
-			join mapFiles #( mapName )
+			clearlistener()
+			if mapName != undefined do (
+				join mapFiles #( mapName )
+				propertyArray = #()
+				propNames = getPropNames mapName
+				
+				for p = 1 to propNames.count do (
+					try (
+						property = getProperty mapName propNames[p] 
+						if superclassof property == textureMap do (
+							join propertyArray #( property )
+							)
+						) catch ()
+					)
+				for prop in propertyArray do GetMaps prop 
+				)
 			)
 		)
 	)
