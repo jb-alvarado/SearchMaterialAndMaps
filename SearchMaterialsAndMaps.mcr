@@ -476,18 +476,20 @@ fn GetBitmaps mtl = (
 		)
 
 	for b = 1 to mapArray.count do (
-		join colMats #( colMatsSub= #(mapArray[b] ) )
-		if classof mapArray[b] == bitmaptexture then (
-			if ( mapArray[b].filename == undefined OR mapArray[b].filename == "" ) then (
-				join colMatsSub #( "Warning: empty bitmap texture!" )
-				) else (
-					join colMatsSub #( filenameFromPath mapArray[b].filename )
-					)
-			join colMatsSub #( "tex" )
-			) else (
-				join colMatsSub #( mapArray[b].name )
-				join colMatsSub #( "map" )
-				)
+		for c = 1 to mapArray[b].count do (
+			join colMats #( colMatsSub= #(mapArray[b][c] ) )
+			if classof mapArray[b][c] == bitmaptexture then (
+				if ( mapArray[b][c].filename == undefined OR mapArray[b][c].filename == "" ) then (
+					join colMatsSub #( "Warning: empty bitmap texture!" )
+					) else (
+						join colMatsSub #( filenameFromPath mapArray[b][c].filename )
+						)
+					join colMatsSub #( "tex" )
+					) else (
+						join colMatsSub #( mapArray[b][c].name )
+						join colMatsSub #( "map" )
+						)
+			)
 		)
 	)
 
