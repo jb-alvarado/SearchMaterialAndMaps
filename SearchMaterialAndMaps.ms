@@ -44,6 +44,7 @@
 :: 2014-02-07: fix right click menu, remove unused subarray and little fixes (Jonathan Baecker)
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
 :: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
+:: 2014-02-10: code optimisation (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +65,6 @@
 -------------------------------------------------------------------
 --Search maps by name function
 -------------------------------------------------------------------
-
 fn GetMaps mapName = (	
 	case classof mapName of (
 		
@@ -454,7 +454,10 @@ fn GetMaps mapName = (
 			)
 		)
 	)
-	
+
+-------------------------------------------------------------------
+--send maps to GetMaps function
+-------------------------------------------------------------------	
 fn GetBitmaps mtl = (
 	mapArray = #()
 	for a = 1 to (getNumSubTexmaps mtl) do (
@@ -467,20 +470,18 @@ fn GetBitmaps mtl = (
 		)
 
 	for b = 1 to mapArray.count do (
-		for c = 1 to mapArray[b].count do (
-			join colMats #( colMatsSub= #(mapArray[b][c] ) )
-			if classof mapArray[b][c] == bitmaptexture then (
-				if ( mapArray[b][c].filename == undefined OR mapArray[b][c].filename == "" ) then (
-					join colMatsSub #( "Warning: empty bitmap texture!" )
-					) else (
-						join colMatsSub #( filenameFromPath mapArray[b][c].filename )
-						)
-				join colMatsSub #( "tex" )
+		join colMats #( colMatsSub= #(mapArray[b] ) )
+		if classof mapArray[b] == bitmaptexture then (
+			if ( mapArray[b].filename == undefined OR mapArray[b].filename == "" ) then (
+				join colMatsSub #( "Warning: empty bitmap texture!" )
 				) else (
-					join colMatsSub #( mapArray[b][c].name )
-					join colMatsSub #( "map" )
+					join colMatsSub #( filenameFromPath mapArray[b].filename )
 					)
-			)
+			join colMatsSub #( "tex" )
+			) else (
+				join colMatsSub #( mapArray[b].name )
+				join colMatsSub #( "map" )
+				)
 		)
 	)
 
@@ -488,12 +489,10 @@ fn GetBitmaps mtl = (
 --Search material by name function
 -------------------------------------------------------------------
 fn matlists mtl = (
-	local checkType = #(Blend, CompositeMaterial, doubleSided, MultiMaterial, Shellac, Shell_Material, TopBottom, VRay2SidedMtl)
+	local checkType = #( Blend, CompositeMaterial, doubleSided, MultiMaterial, Shellac, Shell_Material, TopBottom, VRay2SidedMtl )
 	
 	case classof mtl of (
-		--------------------------------------------------
-		--Blend
-		--------------------------------------------------
+
 		Blend: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -503,30 +502,28 @@ fn matlists mtl = (
 
 			if (mtl.map1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.map1 ) > 0 ) then (
-						matlists mtl.map1
-						) else (
-							join colMats  #( colMatsSub = #( mtl.map1 ) )
-							join colMatsSub #( mtl.map1.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.map1
+					) else (
+						join colMats  #( colMatsSub = #( mtl.map1 ) )
+						join colMatsSub #( mtl.map1.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.map1
-							)
+						GetBitmaps mtl.map1
+						)
 				)
 			if ( mtl.map2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.map2 ) > 0 ) then (
-						matlists mtl.map2
-						) else (
-							join colMats  #( colMatsSub = #( mtl.map2 ) )
-							join colMatsSub #( mtl.map2.name )
-							join colMatsSub #( "sub" )
-								
-							GetBitmaps mtl.map2
-							)
+					matlists mtl.map2
+					) else (
+						join colMats  #( colMatsSub = #( mtl.map2 ) )
+						join colMatsSub #( mtl.map2.name )
+						join colMatsSub #( "sub" )
+							
+						GetBitmaps mtl.map2
+						)
 				)
 		)
-		--------------------------------------------------
-		--Shellac
-		--------------------------------------------------
+
 		Shellac: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -534,30 +531,28 @@ fn matlists mtl = (
 
 			if ( mtl.shellacMtl1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.shellacMtl1 ) > 0 ) then (
-						matlists mtl.shellacMtl1
-						) else (
-							join colMats  #( colMatsSub = #( mtl.shellacMtl1 ) )
-							join colMatsSub #( mtl.shellacMtl1.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.shellacMtl1
+					) else (
+						join colMats  #( colMatsSub = #( mtl.shellacMtl1 ) )
+						join colMatsSub #( mtl.shellacMtl1.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.shellacMtl1
-							)
+						GetBitmaps mtl.shellacMtl1
+						)
 				)
 			if ( mtl.shellacMtl2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.shellacMtl2 ) > 0 ) then (
-						matlists mtl.shellacMtl2
-						) else (
-							join colMats  #( colMatsSub = #( mtl.shellacMtl2 ) )
-							join colMatsSub #( mtl.shellacMtl2.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.shellacMtl2
+					) else (
+						join colMats  #( colMatsSub = #( mtl.shellacMtl2 ) )
+						join colMatsSub #( mtl.shellacMtl2.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.shellacMtl2
-							)
+						GetBitmaps mtl.shellacMtl2
+						)
 				)
 		)
-		--------------------------------------------------
-		--TopBottom 
-		--------------------------------------------------
+
 		TopBottom: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -565,30 +560,28 @@ fn matlists mtl = (
 
 			if ( mtl.topMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.topMaterial ) > 0 ) then (
-						matlists mtl.topMaterial
-						) else (
-							join colMats  #( colMatsSub = #( mtl.topMaterial ) )
-							join colMatsSub #( mtl.topMaterial.name )
-							join colMatsSub #( "sub" )	
+					matlists mtl.topMaterial
+					) else (
+						join colMats  #( colMatsSub = #( mtl.topMaterial ) )
+						join colMatsSub #( mtl.topMaterial.name )
+						join colMatsSub #( "sub" )	
 
-							GetBitmaps mtl.topMaterial
-							)
+						GetBitmaps mtl.topMaterial
+						)
 				)
 			if ( mtl.bottomMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.bottomMaterial ) > 0 ) then (
-						matlists mtl.bottomMaterial
-						) else (
-							join colMats  #( colMatsSub = #( mtl.bottomMaterial ) )
-							join colMatsSub #( mtl.bottomMaterial.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.bottomMaterial
+					) else (
+						join colMats  #( colMatsSub = #( mtl.bottomMaterial ) )
+						join colMatsSub #( mtl.bottomMaterial.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.bottomMaterial
-							)
+						GetBitmaps mtl.bottomMaterial
+						)
 				)
 		)
-		--------------------------------------------------
-		--DoubleSided 
-		--------------------------------------------------
+
 		doubleSided: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -596,30 +589,28 @@ fn matlists mtl = (
 
 			if ( mtl.material1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.material1 ) > 0 ) then (
-						matlists mtl.material1
-						) else (
-							join colMats  #( colMatsSub = #( mtl.material1 ) )
-							join colMatsSub #( mtl.material1.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.material1
+					) else (
+						join colMats  #( colMatsSub = #( mtl.material1 ) )
+						join colMatsSub #( mtl.material1.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.material1
-							)
+						GetBitmaps mtl.material1
+						)
 				)
 			if ( mtl.material2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.material2 ) > 0 ) then (
-						matlists mtl.material2
-						) else (
-							join colMats  #( colMatsSub = #( mtl.material2 ) )
-							join colMatsSub #( mtl.material2.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.material2
+					) else (
+						join colMats  #( colMatsSub = #( mtl.material2 ) )
+						join colMatsSub #( mtl.material2.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.material2	
-							)
+						GetBitmaps mtl.material2	
+						)
 				)
 		)
-		--------------------------------------------------
-		--VRay2Side
-		--------------------------------------------------
+
 		VRay2SidedMtl: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -627,33 +618,31 @@ fn matlists mtl = (
 
 			if ( mtl.frontMtl != undefined ) do (
 				if ( findItem checkType ( classof mtl.frontMtl ) > 0 ) then (
-						matlists mtl.frontMtl
-						) else (
-							join colMats  #( colMatsSub = #( mtl.frontMtl ) )
-							join colMatsSub #( mtl.frontMtl.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.frontMtl
+					) else (
+						join colMats  #( colMatsSub = #( mtl.frontMtl ) )
+						join colMatsSub #( mtl.frontMtl.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.frontMtl
-							)
+						GetBitmaps mtl.frontMtl
+						)
 				)
 			if ( mtl.backMtl != undefined ) do (
 				if ( findItem checkType ( classof mtl.backMtl ) > 0 ) then (
-						matlists mtl.backMtl
-						) else (
-							join colMats  #( colMatsSub = #( mtl.backMtl ) )
-							join colMatsSub #( mtl.backMtl.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.backMtl
+					) else (
+						join colMats  #( colMatsSub = #( mtl.backMtl ) )
+						join colMatsSub #( mtl.backMtl.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.backMtl	
-							)
+						GetBitmaps mtl.backMtl	
+						)
 				)
 			if ( mtl.texmap_translucency != undefined ) do (
 				GetBitmaps mtl
 				)	
 		)
-		--------------------------------------------------
-		--Shell_Material 
-		--------------------------------------------------
+
 		Shell_Material: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -661,30 +650,28 @@ fn matlists mtl = (
 
 			if ( mtl.originalMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.originalMaterial ) > 0 ) then (
-						matlists mtl.originalMaterial
-						) else (
-							join colMats  #( colMatsSub = #(mtl.originalMaterial ) )
-							join colMatsSub #( mtl.originalMaterial.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.originalMaterial
+					) else (
+						join colMats  #( colMatsSub = #(mtl.originalMaterial ) )
+						join colMatsSub #( mtl.originalMaterial.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.originalMaterial
-							)
+						GetBitmaps mtl.originalMaterial
+						)
 				)
 			if ( mtl.bakedMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.bakedMaterial ) > 0 ) then (
-						matlists mtl.bakedMaterial
-						) else (
-							join colMats  #( colMatsSub = #(mtl.bakedMaterial ) )
-							join colMatsSub #( mtl.bakedMaterial.name )
-							join colMatsSub #( "sub" )
+					matlists mtl.bakedMaterial
+					) else (
+						join colMats  #( colMatsSub = #(mtl.bakedMaterial ) )
+						join colMatsSub #( mtl.bakedMaterial.name )
+						join colMatsSub #( "sub" )
 
-							GetBitmaps mtl.bakedMaterial
-							)
+						GetBitmaps mtl.bakedMaterial
+						)
 				)
 		)
-		--------------------------------------------------
-		-- Multimaterials
-		--------------------------------------------------
+
 		MultiMaterial: (
 			join colMats  #( colMatsSub = #( mtl ) )
 			join colMatsSub #( mtl.name )
@@ -694,7 +681,6 @@ fn matlists mtl = (
 			for m = 1 to mtl.numsubs do (
 				if ( mtl[m] != undefined ) do (
 					if ( findItem checkType ( classof mtl[m] ) > 0 ) then (
-						
 						matlists mtl[m]
 						) else (
 							join colMats  #( colMatsSub = #(mtl[m] ) )
@@ -706,9 +692,7 @@ fn matlists mtl = (
 					)
 			)
 		)
-		--------------------------------------------------
-		--CompositeMaterial
-		--------------------------------------------------
+
 		CompositeMaterial: (
 			join colMats  #(colMatsSub = #(mtl))
 			join colMatsSub #(mtl.name)
@@ -750,12 +734,12 @@ try ( destroyDialog SearchMaterialAndMaps ) catch ( )
 
 rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	
-		local ProgramName = "Search Material and Maps"
-		local listVis = #()
-		local listBG = #()
-		local selectionArray = #()
-		local selectionNums = #()
-		local edtBoxText = ""
+	local ProgramName = "Search Material and Maps"
+	local listVis = #()
+	local listBG = #()
+	local selectionArray = #()
+	local selectionNums = #()
+	local edtBoxText = ""
 
 	groupBox grpSeMyTex "Collection From All Materials And Maps:" pos:[10,8] width:320 height:502
 		editText edtMat "" pos:[16,26] width:240 readOnly:true
@@ -776,7 +760,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	--resize statment
 	-----------------------------------------------
 	on SearchMaterialAndMaps resized newSize do (
-
 		grpSeMyTex.width=newSize[1]-20
 		grpSeMyTex.height=newSize[2]-68
 			edtMat.width=newSize[1]-105
@@ -785,9 +768,9 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			mlbxMatsAndTexs.height=newSize[2]-157
 
 			if colMats.count < 25 then (  
-				try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-46) catch ()
+				try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-46 ) catch ()
 				) else (
-					try (mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64) catch ()
+					try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64 ) catch ()
 					)
 					
 			chkMat.pos=[20,newSize[2]-103]
@@ -916,10 +899,9 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										join listBGType #( colMats[m][2] )
 										join listBGType #( colMats[m][3] )
 										)
-
 								)
 			)
-			
+
 			if listVis.count < 25 do mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			--fill the listBox mlbxMatsAndTexs box
 			mlbxMatsAndTexs.items.addRange listVis
@@ -959,6 +941,7 @@ on SearchMaterialAndMaps open do (
 	mlbxMatsAndTexs.FullRowSelect = true
 	mlbxMatsAndTexs.GridLines = false
 	mlbxMatsAndTexs.MultiSelect = true
+	mlbxMatsAndTexs.HideSelection = false
 	--mlbxMatsAndTexs.allowdrop = true
 	cb = ( ( colorman.getColor #background )*255+20) as color
 	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cb.r cb.g cb.b
@@ -998,7 +981,6 @@ on mlbxMatsAndTexs MouseClick arg do (
 								deleteItem selectionArray t
 								
 								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
-								mlbxMatsAndTexs.HideSelection = false
 								exit
 								) else if ( selectionArray[1][2] == "tex" ) then (
 									edtMat.text = getFilenamePath selectionArray[1][1].filename
@@ -1011,7 +993,6 @@ on mlbxMatsAndTexs MouseClick arg do (
 								edtMat.text = selectionArray[1][1].name
 
 								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
-								mlbxMatsAndTexs.HideSelection = false 
 								exit
 								)
 						)
@@ -1248,7 +1229,7 @@ on chkMap changed theState do (
 
 on chkTex changed theState do (
 	chkmissing.checked = false
-	if ( hkSelObj.checked == true ) then (
+	if ( chkSelObj.checked == true ) then (
 		SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
 		doMaterialList ( makeUniqueArray SelObjMats )
 		) else (
@@ -1313,7 +1294,6 @@ fn searchByName intext = (
 				mlbxMatsAndTexs.Items.item[NumCount[i]-1].Selected = true
 				mlbxMatsAndTexs.EnsureVisible[NumCount[i]-1]
 				)
-			mlbxMatsAndTexs.HideSelection = false
 				
 			for numSe in NumCount do (
 				join selectionArray  #( selectionArraySub = #( listBG[numSe][1] ) )
@@ -1331,7 +1311,6 @@ fn searchByName intext = (
 					mlbxMatsAndTexs.Items.item[NumCount[g]-1].Selected = true
 					mlbxMatsAndTexs.EnsureVisible[NumCount[g]-1]
 					)
-				mlbxMatsAndTexs.HideSelection = false
 			
 				join selectionArray  #( selectionArraySub = #( listBG[NameIndex][1] ) )
 				join selectionArraySub #( listBG[NameIndex][3] )
