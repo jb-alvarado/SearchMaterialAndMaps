@@ -44,7 +44,7 @@
 :: 2014-02-07: fix right click menu, remove unused subarray and little fixes (Jonathan Baecker)
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
 :: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
-:: 2014-02-10: code optimisation (Jonathan Baecker)
+:: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -843,6 +843,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 				li=dotNetObject "System.Windows.Forms.ListViewItem" colMats[m][2]
 				cli = ( ( colorman.getColor #background )*255+10 ) as color
 				li.backColor=li.backColor.fromARGB ( cli.r + 10 ) cli.g cli.b
+				li.ToolTipText = classof colMats[m][1] as string
 				append listVis li
 
 				join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -852,6 +853,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 					li=dotNetObject "System.Windows.Forms.ListViewItem" ( "   " + colMats[m][2] )
 					cls = ( ( colorman.getColor #background )*255+20 ) as color
 					li.backColor=li.backColor.fromARGB ( cls.r + 10 ) ( cls.g + 10 ) cls.b
+					li.ToolTipText = classof colMats[m][1] as string
 					append listVis li
 					
 					join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -861,6 +863,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 						li=dotNetObject "System.Windows.Forms.ListViewItem" ( "      " + colMats[m][2] )
 						cls = ( ( colorman.getColor #background )*255+30 ) as color
 						li.backColor=li.backColor.fromARGB cls.r cls.g ( cls.b + 10 )
+						li.ToolTipText = classof colMats[m][1] as string
 						append listVis li
 						
 						join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -870,6 +873,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 							li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + colMats[m][2] )
 							clt = ( ( colorman.getColor #background )*255+40 ) as color
 							li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+							li.ToolTipText = classof colMats[m][1] as string
 							append listVis li
 									
 							join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -881,11 +885,13 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!  " )
 										clt = ( ( colorman.getColor #background )*255+40 ) as color
 										li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+										li.ToolTipText = classof colMats[m][1] as string
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!" )
 											clt = ( ( colorman.getColor #background )*255+40 ) as color
 											li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+											li.ToolTipText = classof colMats[m][1] as string
 											append listVis li
 											)
 										join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -896,11 +902,13 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + colMats[m][2] )
 										clt = ( ( colorman.getColor #background )*255+30 ) as color
 										li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+										li.ToolTipText = classof colMats[m][1] as string
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + colMats[m][2] )
 											clt = ( ( colorman.getColor #background )*255+30 ) as color
 											li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+											li.ToolTipText = classof colMats[m][1] as string
 											append listVis li
 											)
 										join listBG  #( listBGType = #( colMats[m][1] ) )
@@ -950,6 +958,7 @@ on SearchMaterialAndMaps open do (
 	mlbxMatsAndTexs.GridLines = false
 	mlbxMatsAndTexs.MultiSelect = true
 	mlbxMatsAndTexs.HideSelection = false
+	mlbxMatsAndTexs.ShowItemToolTips = true
 	--mlbxMatsAndTexs.allowdrop = true
 	cb = ( ( colorman.getColor #background )*255+20) as color
 	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cb.r cb.g cb.b
@@ -1196,6 +1205,10 @@ on mlbxMatsAndTexs mouseUp sender args do (
 			cm = lv_context_menu()
 			mlbxMatsAndTexs.ContextMenu = cm.getmenu( "null" )
 			)
+	)
+	
+on mlbxMatsAndTexs mouseOver args do (
+	print "yes"
 	)
 	
 -------------------------------------
