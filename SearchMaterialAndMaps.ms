@@ -45,6 +45,7 @@
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
 :: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
 :: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type (Jonathan Baecker)
+:: 2014-02-11: make it more error saved and remove unused function (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -1187,7 +1188,7 @@ on mlbxMatsAndTexs mouseUp sender args do (
 
 	hit=( mlbxMatsAndTexs.HitTest ( dotNetObject "System.Drawing.Point" args.x args.y ) )
 			
-	if hit.item != undefined then (
+	if hit.item != undefined AND selectionArray[1] != undefined then (
 		if selectionArray[1][2] == "tex" then (
 			cm = lv_context_menu()
 			mlbxMatsAndTexs.ContextMenu = cm.getmenu( selectionArray[1][2] )
@@ -1200,11 +1201,7 @@ on mlbxMatsAndTexs mouseUp sender args do (
 			mlbxMatsAndTexs.ContextMenu = cm.getmenu( "null" )
 			)
 	)
-	
-on mlbxMatsAndTexs mouseOver args do (
-	print "yes"
-	)
-	
+
 -------------------------------------
 --Browse Texture button
 -------------------------------------
