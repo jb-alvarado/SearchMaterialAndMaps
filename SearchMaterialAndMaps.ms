@@ -45,7 +45,7 @@
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
 :: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
 :: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type (Jonathan Baecker)
-:: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name,
+:: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name and make the list unique,
 			- add better default material check - theoretical also all non standard materials and shader will work now (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
@@ -738,6 +738,7 @@ try ( destroyDialog SearchMaterialAndMaps ) catch ( )
 rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	
 	local ProgramName = "Search Material and Maps"
+	local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 	local listVis = #()
 	local listBG = #()
 	local selectionArray = #()
@@ -820,7 +821,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	fn doMaterialList materials = (
 		--reset material and texture array
 		mlbxMatsAndTexs.items.clear()
-		local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 		mlbxMatsAndTexs.Sorting = SortOrder.None
 		matArray = #()
 		colMats = #()
@@ -925,12 +925,38 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 					qSort listBG compTexNames
 				
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+				
+					doubleItems = #()
+					for b = 1 to listBG.count do (
+						if b < listBG.count do (
+							if listBG[b][1].filename == listBG[b+1][1].filename do (
+								append doubleItems b
+								)
+							)
+						)
+					for item in doubleItems do (
+						deleteitem listBG item
+						mlbxMatsAndTexs.Items.RemoveAt[item-1]
+						)
 				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (
 					fn compTexNames name1 name2 = stricmp ( filenameFromPath name1[1].filename ) ( filenameFromPath  name2[1].filename )
  
 					qSort listBG compTexNames
 
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+				
+					doubleItems = #()
+					for b = 1 to listBG.count do (
+						if b < listBG.count do (
+							if listBG[b][1].filename == listBG[b+1][1].filename do (
+								append doubleItems b
+								)
+							)
+						)
+					for item in doubleItems do (
+						deleteitem listBG item
+						mlbxMatsAndTexs.Items.RemoveAt[item-1]
+						)
 					)
 		)
 		
@@ -946,7 +972,7 @@ on SearchMaterialAndMaps open do (
 	mlbxMatsAndTexs.HideSelection = false
 	mlbxMatsAndTexs.ShowItemToolTips = true
 	--mlbxMatsAndTexs.allowdrop = true
-	cb = ( ( colorman.getColor #background )*255+20) as color
+	cb = ( ( colorman.getColor #background )*255+20 ) as color
 	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cb.r cb.g cb.b
 	cf = ( ( colorman.getColor #text )*255+30 ) as color
 	mlbxMatsAndTexs.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
