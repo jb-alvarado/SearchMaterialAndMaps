@@ -45,7 +45,7 @@
 :: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
 :: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
 :: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type (Jonathan Baecker)
-:: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental) 
+:: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name,
 			- add better default material check - theoretical also all non standard materials and shader will work now (Jonathan Baecker)
 ::
 ----------------------------------------------------------------------------------------------------------------------
@@ -818,9 +818,10 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 --Progress, fill material and texture array
 -----------------------------------------------
 	fn doMaterialList materials = (
-		startID = timeStamp()
 		--reset material and texture array
 		mlbxMatsAndTexs.items.clear()
+		local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
+		mlbxMatsAndTexs.Sorting = SortOrder.None
 		matArray = #()
 		colMats = #()
 		colMatsSub = #()
@@ -911,25 +912,24 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										)
 								)
 			)
-			
+
 			if listVis.count < 25 do mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			--fill the listBox mlbxMatsAndTexs box
 			mlbxMatsAndTexs.items.addRange listVis
-
+			mlbxMatsAndTexs.Update()
+			
 			--sort array when only textures selected
 			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
-					fn compTexNames name1 name2 = stricmp (filenameFromPath name1[1].filename) ( filenameFromPath  name2[1].filename)
+					fn compTexNames name1 name2 = stricmp ( filenameFromPath name1[1].filename ) ( filenameFromPath  name2[1].filename )
  
 					qSort listBG compTexNames
 				
-					local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
 				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (
-					fn compTexNames name1 name2 = stricmp (filenameFromPath name1[1].filename) ( filenameFromPath  name2[1].filename)
+					fn compTexNames name1 name2 = stricmp ( filenameFromPath name1[1].filename ) ( filenameFromPath  name2[1].filename )
  
 					qSort listBG compTexNames
 
-					local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
 					)
 		)
@@ -938,7 +938,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 on SearchMaterialAndMaps open do (
 	--Setup the forms view
 	mlbxMatsAndTexs.HeaderStyle = none
-	mlbxMatsAndTexs.columns.add "Material and Texture List" 278
+	mlbxMatsAndTexs.columns.add "" 278
 	mlbxMatsAndTexs.view = ( dotNetClass "system.windows.forms.view" ).details
 	mlbxMatsAndTexs.FullRowSelect = true
 	mlbxMatsAndTexs.GridLines = false
