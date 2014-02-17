@@ -47,7 +47,7 @@
 :: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type 
 :: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name and make the list unique,
 			- add better default material check - theoretical also all non standard materials and shader will work now 
-:: 2014-02-17: fix list sorting 
+:: 2014-02-17: fix list sorting, smoother listview size (?), add material to selection
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -796,18 +796,18 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			mlbxMatsAndTexs.width=newSize[1]-40
 			mlbxMatsAndTexs.height=newSize[2]-157
 
-			if colMats.count < 25 then (  
+			if listBG.count <= ( mlbxMatsAndTexs.height / 17 ) then (  
 				try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-46 ) catch ()
 				) else (
 					try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64 ) catch ()
 					)
 					
 			chkMat.pos=[20,newSize[2]-103]
-			chkSub.pos=[20,newSize[2]-83]  --[newSize[1]/2-55,newSize[2]-103]
-			chkMap.pos=[newSize[1]/2-45,newSize[2]-103]  --[newSize[1]-110,newSize[2]-103]
-			chkTex.pos=[newSize[1]/2-45,newSize[2]-83]                --[20,newSize[2]-83] 
-			chkmissing.pos=[newSize[1]-115,newSize[2]-103] --[newSize[1]/2-55,newSize[2]-83]
-			chkSelObj.pos=[newSize[1]-115,newSize[2]-83]   --[newSize[1]-110,newSize[2]-83]
+			chkSub.pos=[20,newSize[2]-83]
+			chkMap.pos=[newSize[1]/2-45,newSize[2]-103]
+			chkTex.pos=[newSize[1]/2-45,newSize[2]-83]
+			chkmissing.pos=[newSize[1]-115,newSize[2]-103]
+			chkSelObj.pos=[newSize[1]-115,newSize[2]-83]
 
 		grpSeByName.width=newSize[1]-20
 		grpSeByName.pos=[10, newSize[2]-55]
@@ -914,7 +914,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 								)
 			)
 
-			if listVis.count < 25 do mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			--fill the listBox mlbxMatsAndTexs box
 			mlbxMatsAndTexs.items.addRange listVis
 			
@@ -964,7 +963,12 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 						)
 						listBG = sortList					
 					)
-		mlbxMatsAndTexs.Update()			
+		if listBG.count <= ( mlbxMatsAndTexs.height / 17 ) then (
+			mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
+			) else (
+				mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 64
+				)
+		mlbxMatsAndTexs.Update()
 		)
 		
 		
@@ -1124,6 +1128,11 @@ struct lv_context_menu (
 				setMeditMaterial sender.tag selectionArray[1][1]
 				)
 		),
+	fn AddMaterialToSelection = (
+		if selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material do (
+			for sel in selection do sel.material = selectionArray[1][1]
+			)
+		),	
 	fn SelectObjectsByMaterial = (
 		objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj
 			
@@ -1162,9 +1171,9 @@ struct lv_context_menu (
 				ShellLaunch "explorer.exe" ( getFilenamePath selectionArray[1][1].filename )
 				)
 		),
-	names = #( "&Edit Path","-", "&Copy To Material Editor", "&Select Objects By Material", "-", "&Refresh List", "&Open Path" ), --Asign To Object; Search Material from Selected Object
-	eventHandlers = #( EditPath, null, CopyToMaterialEditor, SelectObjectsByMaterial, null, RefreshList, OpenInExplorer ),
-	events = #( "Click", "Click", "Click", "Click", "Click", "Click", "Click" ),
+	names = #( "&Edit Path","-", "&Copy To Material Editor", "&Add Material To Selection", "&Select Objects By Material", "-", "&Refresh List", "&Open Path" ), --Asign To Object; Search Material from Selected Object
+	eventHandlers = #( EditPath, null, CopyToMaterialEditor, AddMaterialToSelection, SelectObjectsByMaterial, null, RefreshList, OpenInExplorer ),
+	events = #( "Click", "Click", "Click", "Click", "Click", "Click", "Click", "Click" ),
 	
 	fn GetMenu type= (
 		cm = ( dotNetObject "System.Windows.Forms.ContextMenu" )
@@ -1180,6 +1189,12 @@ struct lv_context_menu (
 			if type != "mat" AND names[i] == "&Select Objects By Material" do (
 				mi.enabled = off
 				)
+				
+			if type != "mat" AND type != "sub" do (
+					if names[i] == "&Add Material To Selection" do (
+					mi.enabled = off
+					)
+				)	
 				
 			if type == "null" AND names[i] != "&Refresh List" do (
 				mi.enabled = off
