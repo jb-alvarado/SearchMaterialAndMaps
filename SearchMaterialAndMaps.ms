@@ -31,22 +31,23 @@
 ::
 :: This is version 1.3. Last bigger modification was on 2014-02-16
 :: 2013-05-27: build the script
-:: 2013-06-01: rewrite and optimize the code (Jonathan Baecker)
-:: 2013-06-02: Add support for multiple texture selections (Jonathan Baecker)
-:: 2013-06-04: Add list filter options, and select object by material (Jonathan Baecker)
-:: 2013-06-05: Add missing texture filter and small changes (Jonathan Baecker)
-:: 2013-06-06: Optimize the search command and add a sort function for the texture list (Jonathan Baecker)
-:: 2013-06-07: Add a sort function for the material list (Jonathan Baecker)
-:: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects (Jonathan Baecker)
-:: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons (Jonathan Baecker)
-:: 2014-02-05: fix fillup map array and add vray2side material (Jonathan Baecker)
-:: 2014-02-06: add more map types (Jonathan Baecker)
-:: 2014-02-07: fix right click menu, remove unused subarray and little fixes (Jonathan Baecker)
-:: 2014-02-07: remove processbar and unused variables and functions (Jonathan Baecker)
-:: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps (Jonathan Baecker)
-:: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type (Jonathan Baecker)
+:: 2013-06-01: rewrite and optimize the code 
+:: 2013-06-02: Add support for multiple texture selections 
+:: 2013-06-04: Add list filter options, and select object by material 
+:: 2013-06-05: Add missing texture filter and small changes 
+:: 2013-06-06: Optimize the search command and add a sort function for the texture list 
+:: 2013-06-07: Add a sort function for the material list 
+:: 2013-06-09: Add show texture slot checkbox and show material and texture from selected objects 
+:: 2014-02-04: change listview to dotnet, add right click menu and remove some buttons 
+:: 2014-02-05: fix fillup map array and add vray2side material 
+:: 2014-02-06: add more map types 
+:: 2014-02-07: fix right click menu, remove unused subarray and little fixes 
+:: 2014-02-07: remove processbar and unused variables and functions 
+:: 2014-02-09: makeup code, fix usability and bugs, better function for unnamed maps 
+:: 2014-02-10: code optimisation, add tooltip text in the listview what shows the type 
 :: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name and make the list unique,
-			- add better default material check - theoretical also all non standard materials and shader will work now (Jonathan Baecker)
+			- add better default material check - theoretical also all non standard materials and shader will work now 
+:: 2014-02-17: fix list sorting 
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -773,12 +774,12 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		editText edtMat "" pos:[16,26] width:240 readOnly:true
 		button btnChangeTex "Browse" pos:[260,26] width:60 height:18
 		dotNetControl mlbxMatsAndTexs "system.windows.forms.listView" pos:[20,47] width:300 height:413
-		checkBox chkMat "Show Materials" pos:[20,467] checked:true
-		checkBox chkSub "Show Submaterials" pos:[115,467] checked:true
-		checkBox chkMap "Show Maps" pos:[230,467] checked:true
-		checkBox chkTex "Show Textures" pos:[20,487] checked:true
-		checkBox chkmissing "Missing Texture" pos:[115,487] checked:false
-		checkBox chkSelObj "From Selection" pos:[230,487] checked:false
+		checkBox chkMat "Materials" pos:[20,467] checked:true
+		checkBox chkSub "Submats" pos:[20,487] checked:true
+		checkBox chkMap "Maps" pos:[125,467] checked:true
+		checkBox chkTex "Textures" pos:[125,487] checked:true
+		checkBox chkmissing "Missing Texture" pos:[225,467] checked:false
+		checkBox chkSelObj "From Selection" pos:[225,487] checked:false
 
 	groupBox grpSeByName "Search Material And Maps By Name:" pos:[10,515] width:320 height:45
 		editText edtBox text:"" pos:[16,533] width:244
@@ -802,11 +803,11 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 					)
 					
 			chkMat.pos=[20,newSize[2]-103]
-			chkSub.pos=[newSize[1]/2-55,newSize[2]-103]
-			chkMap.pos=[newSize[1]-110,newSize[2]-103]
-			chkTex.pos=[20,newSize[2]-83]
-			chkmissing.pos=[newSize[1]/2-55,newSize[2]-83]
-			chkSelObj.pos=[newSize[1]-110,newSize[2]-83]
+			chkSub.pos=[20,newSize[2]-83]  --[newSize[1]/2-55,newSize[2]-103]
+			chkMap.pos=[newSize[1]/2-45,newSize[2]-103]  --[newSize[1]-110,newSize[2]-103]
+			chkTex.pos=[newSize[1]/2-45,newSize[2]-83]                --[20,newSize[2]-83] 
+			chkmissing.pos=[newSize[1]-115,newSize[2]-103] --[newSize[1]/2-55,newSize[2]-83]
+			chkSelObj.pos=[newSize[1]-115,newSize[2]-83]   --[newSize[1]-110,newSize[2]-83]
 
 		grpSeByName.width=newSize[1]-20
 		grpSeByName.pos=[10, newSize[2]-55]
@@ -919,43 +920,49 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			
 			--sort array when only textures selected
 			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
-					fn compTexNames name1 name2 = stricmp ( filenameFromPath name1[1].filename ) ( filenameFromPath  name2[1].filename )
- 
-					qSort listBG compTexNames
-				
-					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
-				
-					doubleItems = #()
-					for b = 1 to listBG.count do (
-						if b < listBG.count do (
-							if listBG[b][1].filename == listBG[b+1][1].filename do (
-								append doubleItems b
-								)
+				for i= 1 to listBG.count do (
+					for j = listBG.count to i+1 by -1 do (
+						if listBG[i][1].filename == listBG[j][1].filename do (
+							deleteItem listBG j
+							mlbxMatsAndTexs.Items.RemoveAt[j-1]
 							)
 						)
-					for item in doubleItems do (
-						deleteitem listBG item
-						mlbxMatsAndTexs.Items.RemoveAt[item-1]
-						)
-				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (
-					fn compTexNames name1 name2 = stricmp ( filenameFromPath name1[1].filename ) ( filenameFromPath  name2[1].filename )
- 
-					qSort listBG compTexNames
+					)
 
-					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
-				
-					doubleItems = #()
-					for b = 1 to listBG.count do (
-						if b < listBG.count do (
-							if listBG[b][1].filename == listBG[b+1][1].filename do (
-								append doubleItems b
+				sortList = #()
+				mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+					
+				for k = 1 to mlbxMatsAndTexs.items.count do (
+					for l = 1 to listBG.count do (
+						searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
+						if searchStr == filenameFromPath listBG[l][1].filename do (
+							appendIfUnique sortList listBG[l]
+							)
+						)
+					)
+					listBG = sortList	
+				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (						
+					for i= 1 to listBG.count do (
+						for j = listBG.count to i+1 by -1 do (
+							if listBG[i][1].filename == listBG[j][1].filename do (
+								deleteItem listBG j
+								mlbxMatsAndTexs.Items.RemoveAt[j-1]
 								)
 							)
 						)
-					for item in doubleItems do (
-						deleteitem listBG item
-						mlbxMatsAndTexs.Items.RemoveAt[item-1]
+
+					sortList = #()
+					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
+						
+					for k = 1 to mlbxMatsAndTexs.items.count do (
+						for l = 1 to listBG.count do (
+							searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
+							if searchStr == filenameFromPath listBG[l][1].filename do (
+								appendIfUnique sortList listBG[l]
+								)
+							)
 						)
+						listBG = sortList					
 					)
 		mlbxMatsAndTexs.Update()			
 		)
