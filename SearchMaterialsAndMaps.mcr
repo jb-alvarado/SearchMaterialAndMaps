@@ -922,7 +922,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			if listVis.count < 25 do mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			--fill the listBox mlbxMatsAndTexs box
 			mlbxMatsAndTexs.items.addRange listVis
-			mlbxMatsAndTexs.Update()
 			
 			--sort array when only textures selected
 			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
@@ -964,6 +963,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 						mlbxMatsAndTexs.Items.RemoveAt[item-1]
 						)
 					)
+		mlbxMatsAndTexs.Update()			
 		)
 		
 		
