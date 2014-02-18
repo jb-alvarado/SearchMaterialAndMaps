@@ -48,6 +48,7 @@
 :: 2014-02-16: optimize code - remove 1 subarray item, add drag&drop material to object (experimental), fix sort texture by name and make the list unique,
 			- add better default material check - theoretical also all non standard materials and shader will work now 
 :: 2014-02-17: fix list sorting, smoother listview size (?), add material to selection
+:: 2014-02-18: bugfixes
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -506,20 +507,25 @@ fn GetBitmaps mtl = (
 -------------------------------------------------------------------
 --Search material by name function
 -------------------------------------------------------------------
-fn matlists mtl = (
+fn matlists mtl type = (
 	local checkType = #( Blend, CompositeMaterial, doubleSided, MultiMaterial, Shellac, Shell_Material, TopBottom, VRay2SidedMtl )
 	
 	case classof mtl of (
 
 		Blend: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			local blendMat = #()
 
 			if (mtl.map1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.map1 ) > 0 ) then (
-					matlists mtl.map1
+					matlists mtl.map1 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.map1 ) )
 						join colMatsSub #( "sub" )
@@ -529,7 +535,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.map2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.map2 ) > 0 ) then (
-					matlists mtl.map2
+					matlists mtl.map2 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.map2 ) )
 						join colMatsSub #( "sub" )
@@ -543,12 +549,17 @@ fn matlists mtl = (
 		)
 
 		Shellac: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			if ( mtl.shellacMtl1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.shellacMtl1 ) > 0 ) then (
-					matlists mtl.shellacMtl1
+					matlists mtl.shellacMtl1 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.shellacMtl1 ) )
 						join colMatsSub #( "sub" )
@@ -558,7 +569,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.shellacMtl2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.shellacMtl2 ) > 0 ) then (
-					matlists mtl.shellacMtl2
+					matlists mtl.shellacMtl2 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.shellacMtl2 ) )
 						join colMatsSub #( "sub" )
@@ -569,12 +580,17 @@ fn matlists mtl = (
 		)
 
 		TopBottom: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			if ( mtl.topMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.topMaterial ) > 0 ) then (
-					matlists mtl.topMaterial
+					matlists mtl.topMaterial "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.topMaterial ) )
 						join colMatsSub #( "sub" )	
@@ -584,7 +600,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.bottomMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.bottomMaterial ) > 0 ) then (
-					matlists mtl.bottomMaterial
+					matlists mtl.bottomMaterial "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.bottomMaterial ) )
 						join colMatsSub #( "sub" )
@@ -595,12 +611,17 @@ fn matlists mtl = (
 		)
 
 		doubleSided: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			if ( mtl.material1 != undefined ) do (
 				if ( findItem checkType ( classof mtl.material1 ) > 0 ) then (
-					matlists mtl.material1
+					matlists mtl.material1 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.material1 ) )
 						join colMatsSub #( "sub" )
@@ -610,7 +631,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.material2 != undefined ) do (
 				if ( findItem checkType ( classof mtl.material2 ) > 0 ) then (
-					matlists mtl.material2
+					matlists mtl.material2 "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.material2 ) )
 						join colMatsSub #( "sub" )
@@ -621,12 +642,17 @@ fn matlists mtl = (
 		)
 
 		VRay2SidedMtl: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			if ( mtl.frontMtl != undefined ) do (
 				if ( findItem checkType ( classof mtl.frontMtl ) > 0 ) then (
-					matlists mtl.frontMtl
+					matlists mtl.frontMtl "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.frontMtl ) )
 						join colMatsSub #( "sub" )
@@ -636,7 +662,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.backMtl != undefined ) do (
 				if ( findItem checkType ( classof mtl.backMtl ) > 0 ) then (
-					matlists mtl.backMtl
+					matlists mtl.backMtl "sub"
 					) else (
 						join colMats  #( colMatsSub = #( mtl.backMtl ) )
 						join colMatsSub #( "sub" )
@@ -650,12 +676,17 @@ fn matlists mtl = (
 		)
 
 		Shell_Material: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			if ( mtl.originalMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.originalMaterial ) > 0 ) then (
-					matlists mtl.originalMaterial
+					matlists mtl.originalMaterial "sub"
 					) else (
 						join colMats  #( colMatsSub = #(mtl.originalMaterial ) )
 						join colMatsSub #( "sub" )
@@ -665,7 +696,7 @@ fn matlists mtl = (
 				)
 			if ( mtl.bakedMaterial != undefined ) do (
 				if ( findItem checkType ( classof mtl.bakedMaterial ) > 0 ) then (
-					matlists mtl.bakedMaterial
+					matlists mtl.bakedMaterial "sub"
 					) else (
 						join colMats  #( colMatsSub = #(mtl.bakedMaterial ) )
 						join colMatsSub #( "sub" )
@@ -676,14 +707,19 @@ fn matlists mtl = (
 		)
 
 		MultiMaterial: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			local m
 			for m = 1 to mtl.numsubs do (
 				if ( mtl[m] != undefined ) do (
 					if ( findItem checkType ( classof mtl[m] ) > 0 ) then (
-						matlists mtl[m]
+						matlists mtl[m]  "sub"
 						) else (
 							join colMats  #( colMatsSub = #(mtl[m] ) )
 							join colMatsSub #( "sub" )
@@ -695,14 +731,19 @@ fn matlists mtl = (
 		)
 
 		CompositeMaterial: (
-			join colMats  #(colMatsSub = #(mtl))
-			join colMatsSub #("mat")
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
 
 			local c
 			for c = 1 to mtl.materialList.count do (
 				if ( mtl.materialList[c] != undefined ) do (
 					if ( findItem checkType ( classof mtl.materialList[c] ) > 0 ) then (
-						matlists mtl.materialList[c]
+						matlists mtl.materialList[c] "sub"
 						) else (
 							join colMats  #( colMatsSub = #( mtl.materialList[c] ) )
 							join colMatsSub #( "sub" )
@@ -716,13 +757,19 @@ fn matlists mtl = (
 		--all other materials
 		--------------------------------------------------
 		default: (
-			join colMats  #( colMatsSub = #( mtl ) )
-			join colMatsSub #( "mat" )
+			if type == "sub" then (
+				join colMats  #( colMatsSub = #( mtl ) )
+				join colMatsSub #( "sub" )
+				) else (
+					join colMats  #( colMatsSub = #( mtl ) )
+					join colMatsSub #( "mat" )
+					)
+					
 			if ( superclassof mtl == material ) do (
 				if ( getNumSubMtls mtl > 0 ) do (
 					for d = 1 to getNumSubMtls mtl do (
 						if ( getSubMtl mtl d ) != undefined do (
-							matlists ( getSubMtl mtl d )
+							matlists ( getSubMtl mtl d ) "sub"
 							)
 						)
 					)
@@ -749,6 +796,8 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	local theMat
 	local theObject
   	local dragFlag = false
+	
+	local liCol = ( ( colorman.getColor #background )*255 ) as color
 	
 	--Returns the object at the mouse position in the viewport	
 	fn hitTest = (
@@ -835,16 +884,18 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		matArray = for mat in materials collect mat
 		qSort matArray compMatNames
 		
+		--clearlistener()
+		--startID = timeStamp()
+		
 		for i = 1 to matArray.count do (
-			matlists matArray[i]
+			matlists matArray[i] "run"
 			)
 
 		--get names from materials and textures
 		for m = 1 to colMats.count do (
 			if ( chkMat.checked == true AND colMats[m][2] == "mat" ) then (
 				li=dotNetObject "System.Windows.Forms.ListViewItem" colMats[m][1].name
-				cli = ( ( colorman.getColor #background )*255+10 ) as color
-				li.backColor=li.backColor.fromARGB ( cli.r + 10 ) cli.g cli.b
+				li.backColor=li.backColor.fromARGB (liCol.r + 20) (liCol.g + 10) (liCol.b + 10)
 				li.ToolTipText = classof colMats[m][1] as string
 				append listVis li
 
@@ -852,8 +903,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 				join listBGType #( colMats[m][2] )
 				) else if ( chkSub.checked == true AND colMats[m][2] == "sub" ) then (
 					li=dotNetObject "System.Windows.Forms.ListViewItem" ( "   " + colMats[m][1].name )
-					cls = ( ( colorman.getColor #background )*255+20 ) as color
-					li.backColor=li.backColor.fromARGB ( cls.r + 10 ) ( cls.g + 10 ) cls.b
+					li.backColor=li.backColor.fromARGB (liCol.r + 30) (liCol.g + 30) (liCol.b + 20)
 					li.ToolTipText = classof colMats[m][1] as string
 					append listVis li
 					
@@ -861,17 +911,20 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 					join listBGType #( colMats[m][2] )
 					) else if ( chkMap.checked == true AND colMats[m][2] == "map" ) then (
 						li=dotNetObject "System.Windows.Forms.ListViewItem" ( "      " + colMats[m][1].name )
-						cls = ( ( colorman.getColor #background )*255+30 ) as color
-						li.backColor=li.backColor.fromARGB cls.r cls.g ( cls.b + 10 )
+						li.backColor=li.backColor.fromARGB (liCol.r + 30) (liCol.g + 30) (liCol.b + 40)
 						li.ToolTipText = classof colMats[m][1] as string
 						append listVis li
 						
 						join listBG  #( listBGType = #( colMats[m][1] ) )
 						join listBGType #( colMats[m][2] )
-						) else if ( chkTex.checked == true AND colMats[m][2] == "tex" ) then (								
-							li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
-							clt = ( ( colorman.getColor #background )*255+40 ) as color
-							li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+						) else if ( chkTex.checked == true AND colMats[m][2] == "tex" ) then (
+							if (  colMats[m][1].filename == undefined OR colMats[m][1].filename == "" ) then (
+								li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
+							) else (
+								li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
+								)
+							
+							li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 							li.ToolTipText = classof colMats[m][1] as string
 							append listVis li
 									
@@ -880,15 +933,13 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 							) else if ( chkmissing.checked == true AND colMats[m][2] == "tex" ) then (
 								if (  colMats[m][1].filename == undefined OR colMats[m][1].filename == "" ) then (
 									if ( chkTex.checked == true ) then (
-										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!  " )
-										clt = ( ( colorman.getColor #background )*255+40 ) as color
-										li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
+										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 										li.ToolTipText = classof colMats[m][1] as string
 										append listVis li
 										) else (
-											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           Warning: empty bitmap texture!" )
-											clt = ( ( colorman.getColor #background )*255+40 ) as color
-											li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
+											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 											li.ToolTipText = classof colMats[m][1] as string
 											append listVis li
 											)
@@ -897,14 +948,12 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 									) else if not ( doesFileExist colMats[m][1].filename ) then (
 										if ( chkmissing.checked == true ) then (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
-										clt = ( ( colorman.getColor #background )*255+30 ) as color
-										li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 										li.ToolTipText = classof colMats[m][1] as string
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
-											clt = ( ( colorman.getColor #background )*255+30 ) as color
-											li.backColor=li.backColor.fromARGB clt.r ( clt.g + 10 ) clt.b
+											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 											li.ToolTipText = classof colMats[m][1] as string
 											append listVis li
 											)
@@ -920,32 +969,38 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			--sort array when only textures selected
 			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
 				for i= 1 to listBG.count do (
-					for j = listBG.count to i+1 by -1 do (
-						if listBG[i][1].filename == listBG[j][1].filename do (
-							deleteItem listBG j
-							mlbxMatsAndTexs.Items.RemoveAt[j-1]
+						for j = listBG.count to i+1 by -1 do (
+							if (listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
+								if listBG[i][1].filename == listBG[j][1].filename do (
+									deleteItem listBG j
+									mlbxMatsAndTexs.Items.RemoveAt[j-1]
+									)
+								)
 							)
 						)
-					)
 
 				sortList = #()
 				mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
 					
 				for k = 1 to mlbxMatsAndTexs.items.count do (
+					searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
 					for l = 1 to listBG.count do (
-						searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
-						if searchStr == filenameFromPath listBG[l][1].filename do (
-							appendIfUnique sortList listBG[l]
-							)
+						if listBG[l][1].filename != undefined AND listBG[l][1].filename != "" then (
+							if searchStr == filenameFromPath listBG[l][1].filename do (
+								appendIfUnique sortList listBG[l]
+								)
+							) else ( appendIfUnique sortList listBG[l] )
 						)
 					)
 					listBG = sortList	
-				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (						
+				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (		
 					for i= 1 to listBG.count do (
 						for j = listBG.count to i+1 by -1 do (
-							if listBG[i][1].filename == listBG[j][1].filename do (
-								deleteItem listBG j
-								mlbxMatsAndTexs.Items.RemoveAt[j-1]
+							if (listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
+								if listBG[i][1].filename == listBG[j][1].filename do (
+									deleteItem listBG j
+									mlbxMatsAndTexs.Items.RemoveAt[j-1]
+									)
 								)
 							)
 						)
@@ -954,21 +1009,27 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
 						
 					for k = 1 to mlbxMatsAndTexs.items.count do (
+						searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
 						for l = 1 to listBG.count do (
-							searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
-							if searchStr == filenameFromPath listBG[l][1].filename do (
-								appendIfUnique sortList listBG[l]
-								)
+							if listBG[l][1].filename != undefined AND listBG[l][1].filename != "" then (
+								if searchStr == filenameFromPath listBG[l][1].filename do (
+									appendIfUnique sortList listBG[l]
+									)
+								) else ( appendIfUnique sortList listBG[l] )
 							)
 						)
 						listBG = sortList					
 					)
+				
 		if listBG.count <= ( mlbxMatsAndTexs.height / 17 ) then (
 			mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			) else (
 				mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 64
 				)
 		mlbxMatsAndTexs.Update()
+				
+	--	stampID = timeStamp()			
+	--	print ( (stampID - startID) / 1000.0 )			
 		)
 		
 		
@@ -983,8 +1044,7 @@ on SearchMaterialAndMaps open do (
 	mlbxMatsAndTexs.HideSelection = false
 	mlbxMatsAndTexs.ShowItemToolTips = true
 	--mlbxMatsAndTexs.allowdrop = true
-	cb = ( ( colorman.getColor #background )*255+20 ) as color
-	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cb.r cb.g cb.b
+	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB (liCol.r + 20) (liCol.g + 20) (liCol.b + 20)
 	cf = ( ( colorman.getColor #text )*255+30 ) as color
 	mlbxMatsAndTexs.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
 	doMaterialList sceneMaterials
