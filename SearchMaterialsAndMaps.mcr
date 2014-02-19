@@ -49,6 +49,7 @@
 			- add better default material check - theoretical also all non standard materials and shader will work now 
 :: 2014-02-17: fix list sorting, smoother listview size (?), add material to selection
 :: 2014-02-18: bugfixes
+:: 2014-02-19: add double click for texture preview 
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -889,8 +890,8 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		matArray = for mat in materials collect mat
 		qSort matArray compMatNames
 		
-		--clearlistener()
-		--startID = timeStamp()
+		clearlistener()
+		startID = timeStamp()
 		
 		for i = 1 to matArray.count do (
 			matlists matArray[i] "run"
@@ -975,7 +976,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
 				for i= 1 to listBG.count do (
 						for j = listBG.count to i+1 by -1 do (
-							if (listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
+							if ( listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
 								if listBG[i][1].filename == listBG[j][1].filename do (
 									deleteItem listBG j
 									mlbxMatsAndTexs.Items.RemoveAt[j-1]
@@ -1001,7 +1002,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (		
 					for i= 1 to listBG.count do (
 						for j = listBG.count to i+1 by -1 do (
-							if (listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
+							if ( listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
 								if listBG[i][1].filename == listBG[j][1].filename do (
 									deleteItem listBG j
 									mlbxMatsAndTexs.Items.RemoveAt[j-1]
@@ -1033,8 +1034,8 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 				)
 		mlbxMatsAndTexs.Update()
 				
-	--	stampID = timeStamp()			
-	--	print ( (stampID - startID) / 1000.0 )			
+		stampID = timeStamp()			
+		print ( (stampID - startID) / 1000.0 )			
 		)
 		
 		
@@ -1284,7 +1285,6 @@ struct lv_context_menu (
 		)
 	)
 
-	
 -------------------------------------
 --mouse events
 -------------------------------------
@@ -1321,7 +1321,12 @@ on mlbxMatsAndTexs lostFocus arg do (
 	theObject = undefined
   	)
 	
-	
+on mlbxMatsAndTexs MouseDoubleClick arg do (
+	if selectionArray.count == 1 AND selectionArray[1][2] == "tex" do (
+		bitm = openbitmap selectionArray[1][1].filename
+		display bitm
+		)
+	)
 -------------------------------------
 --Browse Texture button
 -------------------------------------

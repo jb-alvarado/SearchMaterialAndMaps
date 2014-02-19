@@ -7,7 +7,7 @@ author: Jonathan Baecker (jb_alvarado)
 
 created:  2013 May 27
 
-modified: 2014 February 17
+modified: 2014 February 19
 
 ---
 
@@ -28,7 +28,7 @@ Download
 
 ### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndMaps/archive/master.zip)
 
-Current release is **v1.3**
+Current release is **v1.35**
 
 
 This MaxScript is for collecting materials and maps, searching by name, 
