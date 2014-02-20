@@ -29,7 +29,7 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 1.3. Last bigger modification was on 2014-02-16
+:: This is version 1.5. Last bigger modification was on 2014-02-20
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code 
 :: 2013-06-02: Add support for multiple texture selections 
@@ -49,7 +49,8 @@
 			- add better default material check - theoretical also all non standard materials and shader will work now 
 :: 2014-02-17: fix list sorting, smoother listview size (?), add material to selection
 :: 2014-02-18: bugfixes
-:: 2014-02-19: add double click for texture preview 
+:: 2014-02-19: add double click for texture preview
+:: 2014-02-20: remove arrays and work more with dotnet values, add progressbar, speedup texture sort function, work on change multiple texture path (maybe not finish)
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -795,8 +796,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	local sortOrder = dotNetClass "System.Windows.Forms.SortOrder"
 	local listVis = #()
 	local listBG = #()
-	local selectionArray = #()
-	local selectionNums = #()
 	local edtBoxText = ""
 	
 	local theMat
@@ -828,7 +827,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 	groupBox grpSeMyTex "Collection From All Materials And Maps:" pos:[10,8] width:320 height:502
 		editText edtMat "" pos:[16,26] width:240 readOnly:true
 		button btnChangeTex "Browse" pos:[260,26] width:60 height:18
-		dotNetControl mlbxMatsAndTexs "system.windows.forms.listView" pos:[20,47] width:300 height:413
+		dotNetControl mL "system.windows.forms.listView" pos:[20,47] width:300 height:413
 		checkBox chkMat "Materials" pos:[20,467] checked:true
 		checkBox chkSub "Submats" pos:[20,487] checked:true
 		checkBox chkMap "Maps" pos:[125,467] checked:true
@@ -848,13 +847,13 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		grpSeMyTex.height=newSize[2]-68
 			edtMat.width=newSize[1]-105
 			btnChangeTex.pos=[newSize[1]-80,26] 
-			mlbxMatsAndTexs.width=newSize[1]-40
-			mlbxMatsAndTexs.height=newSize[2]-157
+			mL.width=newSize[1]-40
+			mL.height=newSize[2]-157
 
-			if listBG.count <= ( mlbxMatsAndTexs.height / 17 ) then (  
-				try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-46 ) catch ()
+			if mL.items.count <= ( mL.height / 17 ) then (  
+				try ( mL.columns.item[0].width = newSize[1]-46 ) catch ()
 				) else (
-					try ( mlbxMatsAndTexs.columns.item[0].width = newSize[1]-64 ) catch ()
+					try ( mL.columns.item[0].width = newSize[1]-64 ) catch ()
 					)
 					
 			chkMat.pos=[20,newSize[2]-103]
@@ -876,22 +875,18 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 -----------------------------------------------
 	fn doMaterialList materials = (
 		--reset material and texture array
-		mlbxMatsAndTexs.items.clear()
-		mlbxMatsAndTexs.Sorting = SortOrder.None
+		mL.items.clear()
+		mL.Sorting = SortOrder.None
 		matArray = #()
 		colMats = #()
 		colMatsSub = #()
 		listVis = #()
 		listBG = #()
-		listBGType = #()
 
 		fn compMatNames name1 name2 = stricmp name1.name name2.name
  
 		matArray = for mat in materials collect mat
 		qSort matArray compMatNames
-		
-		clearlistener()
-		startID = timeStamp()
 		
 		for i = 1 to matArray.count do (
 			matlists matArray[i] "run"
@@ -901,225 +896,205 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		for m = 1 to colMats.count do (
 			if ( chkMat.checked == true AND colMats[m][2] == "mat" ) then (
 				li=dotNetObject "System.Windows.Forms.ListViewItem" colMats[m][1].name
+				li.tag = dotnetMXSValue #(colMats[m][1], "mat")
 				li.backColor=li.backColor.fromARGB (liCol.r + 20) (liCol.g + 10) (liCol.b + 10)
 				li.ToolTipText = classof colMats[m][1] as string
+				
 				append listVis li
-
-				join listBG  #( listBGType = #( colMats[m][1] ) )
-				join listBGType #( colMats[m][2] )
+				join listBG  #( colMats[m][1] )
 				) else if ( chkSub.checked == true AND colMats[m][2] == "sub" ) then (
 					li=dotNetObject "System.Windows.Forms.ListViewItem" ( "   " + colMats[m][1].name )
+					li.tag = dotnetMXSValue #(colMats[m][1], "sub")
 					li.backColor=li.backColor.fromARGB (liCol.r + 30) (liCol.g + 30) (liCol.b + 20)
 					li.ToolTipText = classof colMats[m][1] as string
-					append listVis li
 					
-					join listBG  #( listBGType = #( colMats[m][1] ) )
-					join listBGType #( colMats[m][2] )
+					append listVis li
+					join listBG  #( colMats[m][1] )
 					) else if ( chkMap.checked == true AND colMats[m][2] == "map" ) then (
 						li=dotNetObject "System.Windows.Forms.ListViewItem" ( "      " + colMats[m][1].name )
+						li.tag = dotnetMXSValue #(colMats[m][1], "map")
 						li.backColor=li.backColor.fromARGB (liCol.r + 30) (liCol.g + 30) (liCol.b + 40)
 						li.ToolTipText = classof colMats[m][1] as string
+				
 						append listVis li
-						
-						join listBG  #( listBGType = #( colMats[m][1] ) )
-						join listBGType #( colMats[m][2] )
+						join listBG  #( colMats[m][1] )
 						) else if ( chkTex.checked == true AND colMats[m][2] == "tex" ) then (
 							if (  colMats[m][1].filename == undefined OR colMats[m][1].filename == "" ) then (
 								li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
-							) else (
-								li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
-								)
-							
+								li.tag = dotnetMXSValue #(colMats[m][1], "tex", 0)
+								) else (
+									li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
+									li.tag = dotnetMXSValue #(colMats[m][1], "tex")
+									)
 							li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 							li.ToolTipText = classof colMats[m][1] as string
-							append listVis li
 									
-							join listBG  #( listBGType = #( colMats[m][1] ) )
-							join listBGType #( colMats[m][2] )
+							append listVis li									
+							join listBG  #( colMats[m][1] )
 							) else if ( chkmissing.checked == true AND colMats[m][2] == "tex" ) then (
 								if (  colMats[m][1].filename == undefined OR colMats[m][1].filename == "" ) then (
 									if ( chkTex.checked == true ) then (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
+										li.tag = dotnetMXSValue #(colMats[m][1], "tex", 0)
 										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 										li.ToolTipText = classof colMats[m][1] as string
+										
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
+											li.tag = dotnetMXSValue #(colMats[m][1], "tex", 0)
 											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 											li.ToolTipText = classof colMats[m][1] as string
+										
 											append listVis li
 											)
-										join listBG  #( listBGType = #( colMats[m][1] ) )
-										join listBGType #( colMats[m][2] )
+											
+										join listBG  #( colMats[m][1] )
 									) else if not ( doesFileExist colMats[m][1].filename ) then (
 										if ( chkmissing.checked == true ) then (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
+										li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 										li.ToolTipText = classof colMats[m][1] as string
+
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
+											li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 											li.ToolTipText = classof colMats[m][1] as string
+											
 											append listVis li
 											)
-										join listBG  #( listBGType = #( colMats[m][1] ) )
-										join listBGType #( colMats[m][2] )
+											
+										join listBG  #( colMats[m][1] )
 										)
 								)
 			)
 
-			--fill the listBox mlbxMatsAndTexs box
-			mlbxMatsAndTexs.items.addRange listVis
-			
+			--fill the listBox mL box
+			mL.items.addRange listVis
+
 			--sort array when only textures selected
-			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkTex.checked == false AND chkmissing.checked == true ) then (
-				for i= 1 to listBG.count do (
-						for j = listBG.count to i+1 by -1 do (
-							if ( listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
-								if listBG[i][1].filename == listBG[j][1].filename do (
-									deleteItem listBG j
-									mlbxMatsAndTexs.Items.RemoveAt[j-1]
-									)
+			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
+				mL.Sorting = sortOrder.Ascending;
+				filterStart = timeStamp()
+				for i = 0 to mL.items.count - 1 do (
+					for j = mL.items.count - 1 to i+1 by -1 do (
+						if mL.items.item[i].tag.value[3] != 0 do (
+							if mL.items.item[i].tag.value[1].filename == mL.items.item[j].tag.value[1].filename do (
+								mL.Items.RemoveAt[i]
 								)
 							)
 						)
-
-				sortList = #()
-				mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
-					
-				for k = 1 to mlbxMatsAndTexs.items.count do (
-					searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
-					for l = 1 to listBG.count do (
-						if listBG[l][1].filename != undefined AND listBG[l][1].filename != "" then (
-							if searchStr == filenameFromPath listBG[l][1].filename do (
-								appendIfUnique sortList listBG[l]
-								)
-							) else ( appendIfUnique sortList listBG[l] )
-						)
+					filterStamp = timeStamp()
+					if (((filterStamp - filterStart ) / 1000.0) >= 4.00) do (
+						filterStart = timeStamp()
+						windows.processPostedMessages()
+						)	
 					)
-					listBG = sortList	
-				) else if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false AND chkmissing.checked == false AND chkTex.checked == true ) then (		
-					for i= 1 to listBG.count do (
-						for j = listBG.count to i+1 by -1 do (
-							if ( listBG[i][1].filename != undefined AND listBG[i][1].filename != "" AND listBG[j][1].filename != undefined AND listBG[j][1].filename != "" ) do (
-								if listBG[i][1].filename == listBG[j][1].filename do (
-									deleteItem listBG j
-									mlbxMatsAndTexs.Items.RemoveAt[j-1]
-									)
-								)
-							)
-						)
+				) 
 
-					sortList = #()
-					mlbxMatsAndTexs.Sorting = sortOrder.Ascending;
-						
-					for k = 1 to mlbxMatsAndTexs.items.count do (
-						searchStr = substring mlbxMatsAndTexs.items.item[k-1].text 12 -1
-						for l = 1 to listBG.count do (
-							if listBG[l][1].filename != undefined AND listBG[l][1].filename != "" then (
-								if searchStr == filenameFromPath listBG[l][1].filename do (
-									appendIfUnique sortList listBG[l]
-									)
-								) else ( appendIfUnique sortList listBG[l] )
-							)
-						)
-						listBG = sortList					
-					)
-				
-		if listBG.count <= ( mlbxMatsAndTexs.height / 17 ) then (
-			mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 46
+		-- change listview-width dependent on item count 
+		if mL.items.count <= ( mL.height / 17 ) then (
+			mL.columns.item[0].width = SearchMaterialAndMaps.width - 46
 			) else (
-				mlbxMatsAndTexs.columns.item[0].width = SearchMaterialAndMaps.width - 64
+				mL.columns.item[0].width = SearchMaterialAndMaps.width - 64
 				)
-		mlbxMatsAndTexs.Update()
-				
-		stampID = timeStamp()			
-		print ( (stampID - startID) / 1000.0 )			
+		mL.Update()		
 		)
 		
 		
 on SearchMaterialAndMaps open do (
 	--Setup the forms view
-	mlbxMatsAndTexs.HeaderStyle = none
-	mlbxMatsAndTexs.columns.add "" 278
-	mlbxMatsAndTexs.view = ( dotNetClass "system.windows.forms.view" ).details
-	mlbxMatsAndTexs.FullRowSelect = true
-	mlbxMatsAndTexs.GridLines = false
-	mlbxMatsAndTexs.MultiSelect = true
-	mlbxMatsAndTexs.HideSelection = false
-	mlbxMatsAndTexs.ShowItemToolTips = true
-	--mlbxMatsAndTexs.allowdrop = true
-	mlbxMatsAndTexs.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB (liCol.r + 20) (liCol.g + 20) (liCol.b + 20)
+	mL.HeaderStyle = none
+	mL.columns.add "" 278
+	mL.view = ( dotNetClass "system.windows.forms.view" ).details
+	mL.FullRowSelect = true
+	mL.GridLines = false
+	mL.MultiSelect = true
+	mL.HideSelection = false
+	mL.ShowItemToolTips = true
+	--mL.allowdrop = true
+	mL.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB (liCol.r + 20) (liCol.g + 20) (liCol.b + 20)
 	cf = ( ( colorman.getColor #text )*255+30 ) as color
-	mlbxMatsAndTexs.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
+	mL.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
 	doMaterialList sceneMaterials
 	)
 
 -------------------------------------
 --selected list entry
 -------------------------------------
-on mlbxMatsAndTexs MouseClick arg do (
-	selectionArray = #()
-	selectionArraySub = #()
-	selectionNums = #()
+on mL MouseClick arg do (
 	
-	for k = 0 to mlbxMatsAndTexs.selectedIndices.count-1 do (
-		it = mlbxMatsAndTexs.selectedIndices.item[k] + 1
-		join selectionArray  #( selectionArraySub = #( listBG[it][1] ) )
-		join selectionArraySub #( listBG[it][2] )
-		join selectionNums #( it - 1 )
-		)
+	--loop through selected items
+	if mL.selectedIndices.count > 1 then (
+		for k = 0 to mL.selectedIndices.count - 1 do (
+			si1 = mL.selectedIndices.item[k]
+			
+			--check if multiselection is no texture files
+			if mL.items.item[si1].tag.value[2] != "tex" then (
+				messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
+				mL.Items.item[si1].Selected = false	
+				
+				if k > 0 then (
+					si2 = mL.selectedIndices.item[k-1]
+					) else (
+						si2 = mL.selectedIndices.item[k]
+						)
 
-		if ( selectionArray.count == 1 AND selectionArray[1][2] == "tex" ) then (
-			if ( selectionArray[1][1].filename == undefined OR selectionArray[1][1].filename == "" ) then (
-				edtMat.text = "Warning: empty bitmap texture!"
-				) else (
-					edtMat.text = selectionArray[1][1].filename
-					)
-			) else if ( selectionArray.count == 1 AND selectionArray[1][2] != "tex" ) then (
-				edtMat.text = selectionArray[1][1].name
-				) else if ( selectionArray.count > 1 ) then (
-					for t = 1 to selectionArray.count do (
-						if ( selectionArray[t][2] == "tex" ) then (
-							if ( selectionArray[t][1].filename == undefined OR selectionArray[t][1].filename == "" ) then (
-								messagebox "Texture file is not set, please correct this first!" title:ProgramName
-								deleteItem selectionArray t
-								
-								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
-								exit
-								) else if ( selectionArray[1][2] == "tex" ) then (
-									edtMat.text = getFilenamePath selectionArray[1][1].filename
-									) else (
-										messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
-										)
-							) else if ( selectionArray[t][2] != "tex" ) then (
-								messagebox "Multiple selections is only for BitmapTextures allowed!" title:ProgramName
-								deleteItem selectionArray t
-								edtMat.text = selectionArray[1][1].name
-
-								mlbxMatsAndTexs.Items.item[selectionNums[t]].Selected = false
-								exit
+				--change path text field
+				if mL.items.item[si2].tag.value[2] != "tex" then (
+					edtMat.text = mL.items.item[si2].tag.value[1].name
+					) else (
+						if mL.selectedIndices.count > 1 then (
+							edtMat.text = getFilenamePath mL.items.item[si2].tag.value[1].filename
+							) else (
+								edtMat.text = mL.items.item[si2].tag.value[1].filename
 								)
 						)
-					)			
+				exit
+				) else (
+					if mL.items.item[si1].tag.value[1].filename == "" OR mL.items.item[si1].tag.value[1].filename == undefined then (
+						messagebox "Texture file is not set, please correct this first!" title:ProgramName
+						mL.SelectedItems.Clear()
+						mL.Items.item[si1].Selected = true
+						edtMat.text = "! Warning: empty bitmap texture !"
+						exit
+						) else (
+							edtMat.text = getFilenamePath mL.items.item[si1].tag.value[1].filename
+							)
+					)
+			)
+		) else (
+			--is only one item selected			
+			if mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" then (
+				if mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename == "" OR mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename == undefined then (
+					edtMat.text = "! Warning: empty bitmap texture !"
+					) else (
+						edtMat.text = mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
+						)
+				) else (
+					edtMat.text = mL.items.item[mL.selectedIndices.item[0]].tag.value[1].name
+					)
+			)
 	)
 
 -----------------------------------------------
 --browse texture
 -----------------------------------------------	
-fn browseTexFile selectionArray = (
-	if ( selectionArray.count == 0 ) do (
+fn browseTexFile mL = (
+	if ( mL.selectedIndices.count == 0 ) do (
 		MessageBox "Please select a texture map first!" title:ProgramName
 		return false
 		)
 		
-	if ( selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material ) then (
+	if ( mL.selectedIndices.count == 1 AND mL.items.item[mL.selectedIndices.item[0]].tag.value[2] != "tex" ) then (
 		MessageBox "Please select a texture map..." title:ProgramName
 		return false
-		) else if ( selectionArray.count == 1 AND selectionArray[1][2] == "tex" ) then (
+		) else if ( mL.selectedIndices.count == 1 AND mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" ) then (
 			try ( 
-				filepath = getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename
+				filepath = getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
 				) catch (
 					filepath = ( getDir #renderPresets + @"\" )
 					)
@@ -1134,30 +1109,55 @@ fn browseTexFile selectionArray = (
 			historyCategory:"Textures"
 
 			if ( inputFile != undefined ) do (
-				selectionArray[1][1].filename = inputFile
+				mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename = inputFile
+				
+				if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
+					for a = 1 to listBG.count do (
+						if listBG[a].filename == mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename do (
+							listBG[a].filename = inputFile
+							)
+						)
+					)
+					
 				edtMat.text = inputFile
 				)
-			) else if ( selectionArray[1][2] == "tex" ) then (
+			) else if ( mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" ) then (
 				try (
-					filepath = getFilenamePath selectionArray[1][1].filename
+					filepath = getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
 					folder = getSavePath caption:"Select Path:" initialDir:(filepath)
 					) catch (
-						MessageBox "Please change undefined texture file by file!" title:ProgramName
+						MessageBox "Please change empty bitmap texture one by one!" title:ProgramName
 						)
 					
 				if folder != undefined do (
 					inDir = getFilenamePath ( folder + "/" )
-					for y = 1 to selectionArray.count do (
+					startID = timeStamp()
+					progressStart "change texture path..."
+					for y = 0 to mL.selectedIndices.count - 1 do (
 						try ( 
-							selectionArray[y][1].filename = ( inDir + filenameFromPath selectionArray[y][1].filename )
-							edtMat.text = inDir
-							) catch (
-								MessageBox "Please change undefined texture file by file!" title:ProgramName
-								edtMat.text = "Warning: empty bitmap texture!"
-								exit
+							mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename = ( inDir + filenameFromPath mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename )
+							
+							if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
+								for b = 1 to listBG.count do (
+									if listBG[b].filename == mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename do (
+										listBG[b].filename = inDir + filenameFromPath listBG[b].filename
+
+										stampID = timeStamp()
+										if (((stampID - startID) / 1000.0) >= 4.00) do (
+											startID = timeStamp()
+											windows.processPostedMessages()
+											)
+										progressUpdate( 100. * ( y + 1 ) / mL.selectedIndices.count )
+										)
+									)
 								)
-						
+							mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename = ( inDir + filenameFromPath mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename )
+							) catch (
+								MessageBox "Please change empty bitmap texture one by one!" title:ProgramName
+								exit
+								)	
 						)
+					progressEnd()
 					)
 				) else (
 					MessageBox "Please select a texture map..." title:ProgramName
@@ -1165,9 +1165,16 @@ fn browseTexFile selectionArray = (
 
 		if ( chkSelObj.checked == true ) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
+			
+			selIDArr = #()
+			for s = 0 to mL.selectedIndices.count - 1 do ( append selIDArr mL.selectedIndices.item[s] )
 			doMaterialList ( makeUniqueArray SelObjMats )
+			try ( for t = 0 to selIDArr.count - 1 do ( mL.Items.item[selIDArr[t]].Selected = true ) ) catch ()
 			) else (
+				selIDArr = #()
+				for s = 0 to mL.selectedIndices.count - 1 do ( append selIDArr mL.selectedIndices.item[s] )
 				doMaterialList sceneMaterials
+				try ( for t = 0 to selIDArr.count - 1 do ( mL.Items.item[selIDArr[t]].Selected = true ) ) catch ()
 				)
 	)
 	
@@ -1176,7 +1183,7 @@ fn browseTexFile selectionArray = (
 -----------------------------------------------	
 struct lv_context_menu (
 	fn EditPath = (	
-		browseTexFile selectionArray
+		browseTexFile mL
 		),
 	fn null = (),
 	fn CopyToMaterialEditor sender arg = (	
@@ -1184,23 +1191,23 @@ struct lv_context_menu (
 			local i
 
 			for i = 1 to meditMaterials.count do (
-				if ( matchPattern ( meditMaterials [i].name ) pattern:selectionArray[1][1].name ) do (
+				if ( matchPattern ( meditMaterials [i].name ) pattern:mL.items.item[mL.selectedIndices.item[0]].tag.value[1].name ) do (
 					activeMeditSlot = i
 					MessageBox ( "Material or Textures is already in Material Editor! SLOT: " + ( i as string ) ) title:ProgramName
 					meditMatch = 1
 					) 
 				)
 			if ( meditMatch == 0 ) do (
-				setMeditMaterial sender.tag selectionArray[1][1]
+				setMeditMaterial sender.tag mL.items.item[mL.selectedIndices.item[0]].tag.value[1]
 				)
 		),
 	fn AddMaterialToSelection = (
-		if selectionArray.count == 1 AND superclassof selectionArray[1][1] == Material do (
-			for sel in selection do sel.material = selectionArray[1][1]
+		if mL.selectedIndices.count == 1 AND superclassof mL.items.item[mL.selectedIndices.item[0]].tag.value[1] == Material do (
+			for sel in selection do sel.material = mL.items.item[mL.selectedIndices.item[0]].tag.value[1]
 			)
 		),	
 	fn SelectObjectsByMaterial = (
-		objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == selectionArray[1][1].name collect obj
+		objArray = for obj in Geometry where obj.material != undefined AND obj.material.name == mL.items.item[mL.selectedIndices.item[0]].tag.value[1].name collect obj
 			
 		-- Check if the obj is part of a group
 		for obj in objArray where isGroupMember obj AND ( NOT isOpenGroupMember obj ) do (
@@ -1231,10 +1238,10 @@ struct lv_context_menu (
 				)
 		),
 	fn OpenInExplorer = (
-		if selectionArray.count == 1 then (
-			ShellLaunch "explorer.exe" ( "/e,/select," + ( getFilenamePath selectionArray[1][1].filename + filenameFromPath selectionArray[1][1].filename ) )
+		if mL.selectedIndices.count == 1 then (
+			ShellLaunch "explorer.exe" ( "/e,/select," + ( getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) )
 			) else (
-				ShellLaunch "explorer.exe" ( getFilenamePath selectionArray[1][1].filename )
+				ShellLaunch "explorer.exe" ( getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename )
 				)
 		),
 	names = #( "&Edit Path","-", "&Copy To Material Editor", "&Add Material To Selection", "&Select Objects By Material", "-", "&Refresh List", "&Open Path" ), --Asign To Object; Search Material from Selected Object
@@ -1288,32 +1295,32 @@ struct lv_context_menu (
 -------------------------------------
 --mouse events
 -------------------------------------
-on mlbxMatsAndTexs ItemDrag arg do (
+on mL ItemDrag arg do (
 	dragFlag = true
 	theMat = listBG[arg.item.index+1][1]
   	)
 
-on mlbxMatsAndTexs mouseUp sender args do (
+on mL mouseUp sender args do (
 	dragFlag = false
 	
-	mlbxMatsAndTexs.ContextMenu = ()
-	hit=( mlbxMatsAndTexs.HitTest ( dotNetObject "System.Drawing.Point" args.x args.y ) )
+	mL.ContextMenu = ()
+	hit=( mL.HitTest ( dotNetObject "System.Drawing.Point" args.x args.y ) )
 
-	if hit.item != undefined AND selectionArray[1] != undefined then (
-		if selectionArray[1][2] == "tex" then (
+	if hit.item != undefined AND mL.items.item[mL.selectedIndices.item[0]].tag.value[1] != undefined then (
+		if mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" then (
 			cm = lv_context_menu()
-			mlbxMatsAndTexs.ContextMenu = cm.getmenu( selectionArray[1][2] )
-			) else if selectionArray.count == 1 AND selectionArray[1][2] != "tex" then (
+			mL.ContextMenu = cm.getmenu( mL.items.item[mL.selectedIndices.item[0]].tag.value[2] )
+			) else if mL.selectedIndices.count == 1 AND mL.items.item[mL.selectedIndices.item[0]].tag.value[2] != "tex" then (
 				cm = lv_context_menu()
-				mlbxMatsAndTexs.ContextMenu = cm.getmenu( selectionArray[1][2] )
+				mL.ContextMenu = cm.getmenu( mL.items.item[mL.selectedIndices.item[0]].tag.value[2] )
 				)
 		) else (
 			cm = lv_context_menu()
-			mlbxMatsAndTexs.ContextMenu = cm.getmenu( "null" )
+			mL.ContextMenu = cm.getmenu( "null" )
 			)
 	)
 	
-on mlbxMatsAndTexs lostFocus arg do (
+on mL lostFocus arg do (
 	theObject = hitTest()
 	if theObject != undefined AND superclassof theMat == Material AND dragFlag == true do (
 		theObject.material = theMat
@@ -1321,9 +1328,9 @@ on mlbxMatsAndTexs lostFocus arg do (
 	theObject = undefined
   	)
 	
-on mlbxMatsAndTexs MouseDoubleClick arg do (
-	if selectionArray.count == 1 AND selectionArray[1][2] == "tex" do (
-		bitm = openbitmap selectionArray[1][1].filename
+on mL MouseDoubleClick arg do (
+	if mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" do (
+		bitm = openbitmap mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
 		display bitm
 		)
 	)
@@ -1331,7 +1338,7 @@ on mlbxMatsAndTexs MouseDoubleClick arg do (
 --Browse Texture button
 -------------------------------------
 on btnChangeTex pressed do (
-	browseTexFile selectionArray
+	browseTexFile mL
 	)
 
 -------------------------------------
@@ -1396,9 +1403,6 @@ on chkSelObj changed theState do (
 --search material by name
 -------------------------------------
 fn searchByName intext = (
-	selectionArray = #()
-	selectionArraySub = #()
-
 	if ( edtBox.text != "" ) then (
 		if ( chkSelObj.checked == true ) then (
 			SelObjMats = for selObj in selection where selObj.mat != undefined collect selObj.mat
@@ -1412,52 +1416,45 @@ fn searchByName intext = (
 		local NameIndex = 1
 		local NumCount = #()
 
-		for f = 1 to listBG.count do (
-			if ( listBG[f][1].name == edtBox.text ) then (
-				NameMatch = listBG[f][1]
+		for f = 0 to mL.items.count - 1 do (
+			if ( mL.items.item[f].tag.value[1].name == edtBox.text ) then (
+				NameMatch = mL.items.item[f].tag.value[1]
 				NameIndex = f
-				join NumCount #(f)
-				) else if ( listBG[f][2] == "tex" AND ( try ( filenameFromPath listBG[f][1].filename ) catch ( listBG[f][1].name ) ) == edtBox.text ) then (
-					NameMatch = listBG[f][1]
+				join NumCount #(f+1)
+				) else if ( mL.items.item[f].tag.value[2] == "tex" AND ( try ( filenameFromPath mL.items.item[f].tag.value[1].filename ) catch ( mL.items.item[f].tag.value[1].name ) ) == edtBox.text ) then (
+					NameMatch = mL.items.item[f].tag.value[1]
 					NameIndex = f
-					join NumCount #(f)
+					join NumCount #(f+1)
 					)
 			)
 
 		--count textures, or materials with the same name
-		if ( NumCount.count > 1 AND listBG[NameIndex][2] == "tex" ) then (
+		if ( NumCount.count > 1 AND mL.items.item[NameIndex].tag.value[2] == "tex" ) then (
 			MessageBox ( "Texture is \"" + NumCount.count as string + "\" times in use..." ) title:ProgramName
 			for i = 1 to NumCount.count do (
-				mlbxMatsAndTexs.Items.item[NumCount[i]-1].Selected = true
-				mlbxMatsAndTexs.EnsureVisible[NumCount[i]-1]
+				mL.Items.item[NumCount[i]-1].Selected = true
+				mL.EnsureVisible[NumCount[i]-1]
 				)
-				
-			for numSe in NumCount do (
-				join selectionArray  #( selectionArraySub = #( listBG[numSe][1] ) )
-				join selectionArraySub #( listBG[numSe][2] )
-				)
-			try ( edtMat.text = getFilenamePath selectionArray[1][1].filename ) catch ( edtMat.text = "Warning: empty bitmap texture!" )
+
+			try ( edtMat.text = getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) catch ( edtMat.text = "! Warning: empty bitmap texture !" )
 			return false
-			) else if ( NumCount.count > 1 AND listBG[NameIndex][2] == "mat" ) then (
+			) else if ( NumCount.count > 1 AND mL.items.item[NameIndex].tag.value[2] == "mat" ) then (
 				MessageBox ("Materialname is \"" + NumCount.count as string + "\" times in use!") title:ProgramName
-				) else if ( NumCount.count > 1 AND listBG[NameIndex][2] == "map" ) then (
+				) else if ( NumCount.count > 1 AND mL.items.item[NameIndex].tag.value[2] == "map" ) then (
 					MessageBox ("Mapname is \"" + NumCount.count as string + "\" times in use!") title:ProgramName
 					)
 
 		--jump to the searched material or texture
 		if ( NameMatch != undefined ) then (
 				for g = 1 to NumCount.count do (
-					mlbxMatsAndTexs.Items.item[NumCount[g]-1].Selected = true
-					mlbxMatsAndTexs.EnsureVisible[NumCount[g]-1]
+					mL.Items.item[NumCount[g]-1].Selected = true
+					mL.EnsureVisible[NumCount[g]-1]
 					)
-			
-				join selectionArray  #( selectionArraySub = #( listBG[NameIndex][1] ) )
-				join selectionArraySub #( listBG[NameIndex][2] )
 
-				if ( listBG[NameIndex][2] == "tex" ) then (
-					try ( edtMat.text = listBG[NameIndex][1].filename ) catch ( edtMat.text = "Warning: empty bitmap texture!" )
-					) else if ( superClassOf listBG[NameIndex][1] == Material ) then (
-						edtMat.text = listBG[NameIndex][1].name
+				if ( mL.items.item[NameIndex].tag.value[2] == "tex" ) then (
+					try ( edtMat.text = mL.items.item[NameIndex].tag.value[1].filename ) catch ( edtMat.text = "! Warning: empty bitmap texture !" )
+					) else (
+						edtMat.text = mL.items.item[NameIndex].tag.value[1].name
 						)
 			) else (
 				MessageBox ("Material or map \"" + edtBox.text + "\" not found...") title:ProgramName
