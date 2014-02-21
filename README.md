@@ -28,7 +28,7 @@ Download
 
 ### [Click here to download latest version](https://github.com/jb-alvarado/SearchMaterialAndMaps/archive/master.zip)
 
-Current release is **v1.5**
+Current release is **v1.51**
 
 
 This MaxScript is for collecting materials and maps, searching by name, 

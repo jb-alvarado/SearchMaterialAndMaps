@@ -29,7 +29,7 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 1.5. Last bigger modification was on 2014-02-20
+:: This is version 1.51. Last bigger modification was on 2014-02-20
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code 
 :: 2013-06-02: Add support for multiple texture selections 
@@ -51,6 +51,7 @@
 :: 2014-02-18: bugfixes
 :: 2014-02-19: add double click for texture preview
 :: 2014-02-20: remove arrays and work more with dotnet values, add progressbar, speedup texture sort function, work on change multiple texture path (maybe not finish)
+:: 2014-02-21: fix change multiple texture path (files with same name and different locations will change all to the new selected path), change progressbar to dotnet window
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -798,6 +799,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
   	local dragFlag = false
 	
 	local liCol = ( ( colorman.getColor #background )*255 ) as color
+	local cf = ( ( colorman.getColor #text )*255 ) as color
 	
 	--Returns the object at the mouse position in the viewport	
 	fn hitTest = (
@@ -1011,9 +1013,8 @@ on SearchMaterialAndMaps open do (
 	mL.HideSelection = false
 	mL.ShowItemToolTips = true
 	--mL.allowdrop = true
-	mL.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB (liCol.r + 20) (liCol.g + 20) (liCol.b + 20)
-	cf = ( ( colorman.getColor #text )*255+30 ) as color
-	mL.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
+	mL.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB ( liCol.r + 20 ) ( liCol.g + 20 ) ( liCol.b + 20 )
+	mL.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB ( cf.r + 30 ) ( cf.g + 30 ) ( cf.b + 30 )
 	doMaterialList sceneMaterials
 	)
 
@@ -1127,32 +1128,40 @@ fn browseTexFile mL = (
 				if folder != undefined do (
 					inDir = getFilenamePath ( folder + "/" )
 					startID = timeStamp()
-					progressStart "change texture path..."
+					progBar = dotNetObject "MaxCustomControls.ProgressDialog"
+					progBar.Show()
+					progBar.BackColor = ( dotNetClass "System.Drawing.Color" ).fromARGB liCol.r liCol.g liCol.b
+					progBar.ForeColor = ( dotNetClass "System.Drawing.Color" ).fromARGB cf.r cf.g cf.b
+					progBar.text = "Change Texture Path"
+					progBar.Controls.Item[0].Visible = false
+					progBar.Controls.Item[1].text = "progress texture path..."
+					progBar.Refresh()
+					progBar.UpdateColors()
+					DisableSceneRedraw()
 					for y = 0 to mL.selectedIndices.count - 1 do (
-						try ( 
-							mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename = ( inDir + filenameFromPath mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename )
-							
+						try (
 							if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
 								for b = 1 to listBG.count do (
-									if listBG[b].filename == mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename do (
+									if filenameFromPath listBG[b].filename == filenameFromPath mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename do (
 										listBG[b].filename = inDir + filenameFromPath listBG[b].filename
 
 										stampID = timeStamp()
-										if (((stampID - startID) / 1000.0) >= 4.00) do (
+										if ( ( ( stampID - startID ) / 1000.0 ) >= 4.00 ) do (
 											startID = timeStamp()
 											windows.processPostedMessages()
 											)
-										progressUpdate( 100. * ( y + 1 ) / mL.selectedIndices.count )
 										)
 									)
 								)
-							mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename = ( inDir + filenameFromPath mL.items.item[mL.selectedIndices.item[y]].tag.value[1].filename )
 							) catch (
 								MessageBox "Please change empty bitmap texture one by one!" title:ProgramName
 								exit
 								)	
+						progBar.Controls.Item[2].value = ( 100. * ( y + 1 ) / mL.selectedIndices.count )								
 						)
-					progressEnd()
+					progBar.Visible = false
+					EnableSceneRedraw()
+					edtMat.text = inDir
 					)
 				) else (
 					MessageBox "Please select a texture map..." title:ProgramName
