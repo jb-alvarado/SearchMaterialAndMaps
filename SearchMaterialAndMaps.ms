@@ -947,7 +947,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 											)
 											
 										join listBG  #( colMats[m][1] )
-									) else if not ( doesFileExist colMats[m][1].filename ) then (
+									) else if ( doesFileExist colMats[m][1].filename == false ) then (
 										if ( chkmissing.checked == true ) then (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
 										li.tag = dotnetMXSValue #(colMats[m][1], "tex")
@@ -1301,7 +1301,7 @@ struct lv_context_menu (
 -------------------------------------
 on mL ItemDrag arg do (
 	dragFlag = true
-	theMat = listBG[arg.item.index+1][1]
+	theMat = mL.items.item[arg.item.index].tag.value[1]
   	)
 
 on mL mouseUp sender args do (
