@@ -880,7 +880,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		colMatsSub = #()
 		listVis = #()
 		listBG = #()
-		listBGSub = #()
 
 		fn compMatNames name1 name2 = stricmp name1.name name2.name
  
