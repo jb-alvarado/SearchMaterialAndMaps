@@ -510,7 +510,7 @@ fn GetBitmaps mtl = (
 				) else (
 					join colMatsSub #( "map" )
 					)
-					join colMatsSub #( " [" + getSubTexmapSlotName mtl b + "]" )
+					if b > 1 then join colMatsSub #( " [" + getSubTexmapSlotName mtl b + "]" ) else join colMatsSub #( "" )
 			)
 		)
 	)
