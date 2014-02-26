@@ -52,7 +52,7 @@
 :: 2014-02-19: add double click for texture preview
 :: 2014-02-20: remove arrays and work more with dotnet values, add progressbar, speedup texture sort function, work on change multiple texture path (maybe not finish)
 :: 2014-02-21: fix change multiple texture path (files with same name and different locations will change all to the new selected path), change progressbar to dotnet window
-:: 2014-02-26: speedup texture sort function and little cosmetics 
+:: 2014-02-26: speedup texture sort function and little cosmetics, now it shows also the slotname in the tooltip
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -510,10 +510,10 @@ fn GetBitmaps mtl = (
 				) else (
 					join colMatsSub #( "map" )
 					)
+					join colMatsSub #( " [" + getSubTexmapSlotName mtl b + "]" )
 			)
 		)
 	)
-
 -------------------------------------------------------------------
 --Search material by name function
 -------------------------------------------------------------------
@@ -895,7 +895,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		for i = 1 to matArray.count do (
 			matlists matArray[i] "run"
 			)
-
+			
 		--get names from materials and textures
 		for m = 1 to colMats.count do (
 			if ( chkMat.checked == true AND colMats[m][2] == "mat" ) then (
@@ -918,7 +918,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 						li=dotNetObject "System.Windows.Forms.ListViewItem" ( "      " + colMats[m][1].name )
 						li.tag = dotnetMXSValue #(colMats[m][1], "map")
 						li.backColor=li.backColor.fromARGB (liCol.r + 30) (liCol.g + 30) (liCol.b + 40)
-						li.ToolTipText = classof colMats[m][1] as string
+						li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 				
 						append listVis li
 						join listBG  #( colMats[m][1] )
@@ -931,7 +931,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 									li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 									)
 							li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
-							li.ToolTipText = classof colMats[m][1] as string
+							li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 									
 							append listVis li									
 							join listBG  #( colMats[m][1] )
@@ -941,14 +941,14 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
 										li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
-										li.ToolTipText = classof colMats[m][1] as string
+										li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 										
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
 											li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
-											li.ToolTipText = classof colMats[m][1] as string
+											li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 										
 											append listVis li
 											)
@@ -959,14 +959,14 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
 										li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
-										li.ToolTipText = classof colMats[m][1] as string
+										li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           " + filenameFromPath colMats[m][1].filename )
 											li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
-											li.ToolTipText = classof colMats[m][1] as string
+											li.ToolTipText = classof colMats[m][1] as string + colMats[m][3]
 											
 											append listVis li
 											)
@@ -974,7 +974,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 										join listBG  #( colMats[m][1] )
 										)
 								)
-			)
+			) 
 
 			--fill the listBox mL box
 			mL.items.addRange listVis
