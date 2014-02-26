@@ -29,7 +29,7 @@
 :: History --------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------
 ::
-:: This is version 1.51. Last bigger modification was on 2014-02-20
+:: This is version 1.6. Last bigger modification was on 2014-02-20
 :: 2013-05-27: build the script
 :: 2013-06-01: rewrite and optimize the code 
 :: 2013-06-02: Add support for multiple texture selections 
@@ -52,6 +52,7 @@
 :: 2014-02-19: add double click for texture preview
 :: 2014-02-20: remove arrays and work more with dotnet values, add progressbar, speedup texture sort function, work on change multiple texture path (maybe not finish)
 :: 2014-02-21: fix change multiple texture path (files with same name and different locations will change all to the new selected path), change progressbar to dotnet window
+:: 2014-02-26: speedup texture sort function and little cosmetics 
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -885,6 +886,7 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 		colMatsSub = #()
 		listVis = #()
 		listBG = #()
+		listBGSub = #()
 
 		fn compMatNames name1 name2 = stricmp name1.name name2.name
  
@@ -938,14 +940,14 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 								if (  colMats[m][1].filename == undefined OR colMats[m][1].filename == "" ) then (
 									if ( chkTex.checked == true ) then (
 										li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
-										li.tag = dotnetMXSValue #(colMats[m][1], "tex", 0)
+										li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 										li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 										li.ToolTipText = classof colMats[m][1] as string
 										
 										append listVis li
 										) else (
 											li=dotNetObject "System.Windows.Forms.ListViewItem" ( "           ! Warning: empty bitmap texture !" )
-											li.tag = dotnetMXSValue #(colMats[m][1], "tex", 0)
+											li.tag = dotnetMXSValue #(colMats[m][1], "tex")
 											li.backColor=li.backColor.fromARGB (liCol.r + 40) (liCol.g + 50) (liCol.b + 40)
 											li.ToolTipText = classof colMats[m][1] as string
 										
@@ -979,24 +981,18 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			mL.items.addRange listVis
 
 			--sort array when only textures selected
-			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
+			if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) then (
+				nodups = #()
+				noDupsItems = for k=0 to mL.items.count-1 where appendifunique nodups ( i = mL.items.item[k] ).tag.value[1].filename collect i
+
+				mL.BeginUpdate()
+				mL.items.Clear()
+				mL.items.AddRange noDupsItems
 				mL.Sorting = sortOrder.Ascending;
-				filterStart = timeStamp()
-				for i = 0 to mL.items.count - 1 do (
-					for j = mL.items.count - 1 to i+1 by -1 do (
-						if mL.items.item[i].tag.value[3] != 0 do (
-							if mL.items.item[i].tag.value[1].filename == mL.items.item[j].tag.value[1].filename do (
-								mL.Items.RemoveAt[i]
-								)
-							)
-						)
-					filterStamp = timeStamp()
-					if (((filterStamp - filterStart ) / 1000.0) >= 4.00) do (
-						filterStart = timeStamp()
-						windows.processPostedMessages()
-						)	
+				mL.EndUpdate()
+				) else (
+					mL.Update()	
 					)
-				) 
 
 		-- change listview-width dependent on item count 
 		if mL.items.count <= ( mL.height / 17 ) then (
@@ -1004,7 +1000,6 @@ rollout SearchMaterialAndMaps "Search Materials And Maps" width:340 height:570 (
 			) else (
 				mL.columns.item[0].width = SearchMaterialAndMaps.width - 64
 				)
-		mL.Update()		
 		)
 		
 		
@@ -1096,7 +1091,7 @@ fn browseTexFile mL = (
 		return false
 		) else if ( mL.selectedIndices.count == 1 AND mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" ) then (
 			try ( 
-				filepath = getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
+				filepath = mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
 				) catch (
 					filepath = ( getDir #renderPresets + @"\" )
 					)
@@ -1111,8 +1106,6 @@ fn browseTexFile mL = (
 			historyCategory:"Textures"
 
 			if ( inputFile != undefined ) do (
-				mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename = inputFile
-				
 				if ( chkMat.checked == false AND chkSub.checked == false AND chkMap.checked == false ) do (
 					for a = 1 to listBG.count do (
 						if listBG[a].filename == mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename do (
@@ -1120,7 +1113,7 @@ fn browseTexFile mL = (
 							)
 						)
 					)
-					
+				mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename = inputFile
 				edtMat.text = inputFile
 				)
 			) else if ( mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" ) then (
@@ -1249,7 +1242,7 @@ struct lv_context_menu (
 		),
 	fn OpenInExplorer = (
 		if mL.selectedIndices.count == 1 then (
-			ShellLaunch "explorer.exe" ( "/e,/select," + ( getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) )
+			ShellLaunch "explorer.exe" ( "/e,/select," + ( mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) )
 			) else (
 				ShellLaunch "explorer.exe" ( getFilenamePath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename )
 				)
@@ -1340,8 +1333,15 @@ on mL lostFocus arg do (
 	
 on mL MouseDoubleClick arg do (
 	if mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" do (
-		bitm = openbitmap mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
-		display bitm
+		if ( doesFileExist mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) then (
+			bitm = openbitmap mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
+			display bitm
+			) else if ( doesFileExist ( maxFilePath + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename ) ) then (
+				bitm = openbitmap ( maxFilePath + filenameFromPath mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename )
+				display bitm
+				) else (
+					MessageBox ( "Texture Path not exist..." ) title:ProgramName
+					)
 		)
 	)
 -------------------------------------
