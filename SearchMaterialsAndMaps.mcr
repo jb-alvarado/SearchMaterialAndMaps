@@ -66,12 +66,12 @@
 ----------------------------------------------------------------------------------------------------------------------
 */
 
-macroScript SearchMaterialsAndTextures
+macroScript SearchMaterialAndMaps
  category:"jb_scripts"
- ButtonText:"SearchMaterialsAndTextures"
- Tooltip:"Search Materials And Textures"
+ ButtonText:"SearchMaterialAndMaps"
+ Tooltip:"Search Material And Maps"
 ( 
-local SearchMaterialsAndTextures
+local SearchMaterialAndMaps
 (
 	global colMats = #()
 	global colMatsSub = #()
