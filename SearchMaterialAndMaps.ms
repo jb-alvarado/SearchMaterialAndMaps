@@ -53,6 +53,7 @@
 :: 2014-02-20: remove arrays and work more with dotnet values, add progressbar, speedup texture sort function, work on change multiple texture path (maybe not finish)
 :: 2014-02-21: fix change multiple texture path (files with same name and different locations will change all to the new selected path), change progressbar to dotnet window
 :: 2014-02-26: speedup texture sort function and little cosmetics, now it shows also the slotname in the tooltip
+:: 2014-04-09: fix filepath
 ::
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -1085,6 +1086,7 @@ fn browseTexFile mL = (
 		) else if ( mL.selectedIndices.count == 1 AND mL.items.item[mL.selectedIndices.item[0]].tag.value[2] == "tex" ) then (
 			try ( 
 				filepath = mL.items.item[mL.selectedIndices.item[0]].tag.value[1].filename
+				if filepath == undefined do filepath = ( getDir #renderPresets + @"\" )
 				) catch (
 					filepath = ( getDir #renderPresets + @"\" )
 					)
