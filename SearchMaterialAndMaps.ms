@@ -61,7 +61,7 @@
 --
 --  Script Name: Search Materials And Maps
 --
---	Author:   Jonathan Baecker (jb_alvardo) www.pixelcrusher.de | blog.pixelcrusher.de
+--	Author:   Jonathan Baecker (jb_alvardo) www.pixelcrusher.de | blog.pixelcrusher.de | www.animations-and-more.com
 --
 ----------------------------------------------------------------------------------------------------------------------
 */
